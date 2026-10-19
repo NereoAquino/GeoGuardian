@@ -9,6 +9,7 @@ automatizadas y las pruebas manuales en Windows, y **no tiene cambios funcionale
   como experimental.
 - Se publica bajo la GNU GPL v2 o posterior (`GPL-2.0-or-later`, archivo `LICENSE`). Autor en
   `metadata.txt`: MTI. Nereo Aquino.
+- El paquete instalable incluye el archivo LICENSE de GPL-2.0-or-later.
 - Sin cambios en el esquema 3, las tablas, los campos, los estados, los eventos ni las migraciones.
 - Pendiente para v0.2.0: consolidación de capas, copia de ráster, vectores dentro de
   `Proyecto.gpkg`, distinción entre archivo externo y servicio remoto, respaldo físico o
