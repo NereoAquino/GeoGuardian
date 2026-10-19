@@ -2,12 +2,12 @@
 name=GeoGuardian
 qgisMinimumVersion=3.28
 description=Gestion, trazabilidad y entrega de proyectos QGIS
-about=GeoGuardian convierte un proyecto en un "Proyecto administrado": crea su estructura, guarda Proyecto.qgz con rutas relativas, registra en Proyecto.gpkg las capas que se agregan o quitan y muestra un semaforo del estado del proyecto. No mueve, borra ni modifica archivos fuente, y no confirma ediciones. Licencia: GNU General Public License, version 2 o posterior (GPL-2.0-or-later).
-version=0.1.0
+about=GeoGuardian convierte un proyecto en un "Proyecto administrado": crea su estructura, guarda Proyecto.qgz con rutas relativas, registra en Proyecto.gpkg las capas que se agregan o quitan y muestra un semaforo del estado del proyecto. No mueve, borra ni modifica archivos fuente, y no confirma ediciones. Version de desarrollo 0.2.0: "Revisar capas" muestra, sin cambiar nada, donde esta cada capa vectorial y si su SRC coincide con el del proyecto. Licencia: GNU General Public License, version 2 o posterior (GPL-2.0-or-later).
+version=0.2.0-dev
 author=MTI. Nereo Aquino
 email=naaquino@cetmar02.edu.mx
 tags=docencia,proyecto,trazabilidad,integridad,portabilidad
 category=Plugins
 icon=interfaz/iconos/geoguardian.svg
-experimental=False
+experimental=True
 deprecated=False

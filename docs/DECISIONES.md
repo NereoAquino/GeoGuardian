@@ -7,6 +7,10 @@ se aplica salvo objeción), **Aprobada**, **Rechazada**.
 > **v0.1.0 estable (2026-10-19).** D-01 a D-39 están aprobadas e implementadas en GeoGuardian 0.1.0.
 > D-33 a D-38 se validaron además con pruebas manuales en Windows. La funcionalidad de v0.1.0 está
 > congelada; las propuestas nuevas se registran para v0.2.0.
+>
+> **v0.2.0 (en desarrollo).** D-40 a D-52 están aprobadas (NEREO, 2026-10-19) para el Hito 1:
+> inventario y revisión de capas de solo lectura. El análisis previo está en el informe de revisión
+> técnica del Hito 1.
 
 ---
 
@@ -658,3 +662,84 @@ Solución:
   El esquema de datos no cambia.
 - El nombre del docente queda para v0.2.0, porque necesita un campo propio y una migración.
 
+
+---
+
+# v0.2.0 · Hito 1: inventario y revisión de capas
+
+## D-40 · Inventario exclusivamente en memoria — **Aprobada** (NEREO, 2026-10-19)
+
+El inventario se construye y se descarta en memoria. No se crean tablas ni eventos, no hay
+migraciones y el manifiesto no cambia. "Solo lectura" significa que revisar no escribe en
+`Proyecto.gpkg`, `Proyecto.qgz`, `manifiesto.json` ni en ninguna fuente, y no marca el proyecto como
+modificado.
+
+## D-41 · Origen y disponibilidad son ejes independientes — **Aprobada** (NEREO, 2026-10-19)
+
+- **Origen** (`OrigenFuente`): administrada, carpeta del proyecto, archivo externo, temporal,
+  servicio remoto, base de datos externa, virtual, desconocida.
+- **Disponibilidad** (`Disponibilidad`): disponible, faltante, unidad ausente, inválida.
+
+Una fuente externa puede faltar y una administrada puede ser inválida; ninguno de los dos ejes
+absorbe al otro.
+
+## D-42 · El inventario corre en paralelo a v0.1.0 — **Aprobada** (NEREO, 2026-10-19)
+
+No se modifican `EstadoRecurso`, `clasificar_recurso`, `describir_capa`, `gg_recursos`, el semáforo
+ni el manifiesto. `equivalente_v010` traduce origen y disponibilidad a `EstadoRecurso` solo para
+las pruebas de coherencia, que comprueban que ambas clasificaciones coinciden.
+
+## D-43 · Nombres `CapaInventariada` y `FuenteInventariada` — **Aprobada** (NEREO, 2026-10-19)
+
+Sustituyen a los provisionales *LayerDescriptor* y *ResourceDescriptor*. No se reutiliza `Recurso`,
+que es la fila de `gg_recursos`.
+
+## D-44 · Identidad de una fuente — **Aprobada** (NEREO, 2026-10-19)
+
+Identidad = contenedor + subcapa o conjunto de datos + parámetros relevantes. El contenedor (archivo,
+base de datos, URL) se conserva como atributo independiente. En archivos la ruta se normaliza. En
+servicios y bases de datos la identidad no lleva credenciales (usuario, contraseña, tokens, claves
+de API, `authcfg`). Cada capa en memoria es su propia fuente.
+
+## D-45 · Regla de fuente administrada — **Aprobada** (NEREO, 2026-10-19)
+
+Una fuente es administrada solo si está en el `Proyecto.gpkg` del contexto activo,
+`geopaquete_utilizable` es verdadero y no es una tabla `gg_*`. Si el GPKG no está validado, nada es
+administrado. Un `Proyecto.gpkg` de otro proyecto es un archivo como cualquier otro.
+
+## D-46 · Servicio remoto y base de datos externa son orígenes distintos — **Aprobada** (NEREO, 2026-10-19)
+
+`SERVICIO_REMOTO`: WFS, OGC API Features, ArcGIS, teselas vectoriales y archivos remotos (`/vsicurl/`,
+`http(s)://`). `BASE_DATOS_EXTERNA`: PostgreSQL/PostGIS, SQL Server, Oracle, SAP HANA, DB2.
+
+## D-47 · Capas no vectoriales — **Aprobada** (NEREO, 2026-10-19)
+
+Ráster, malla, nube de puntos y otros tipos se listan como "No revisada en esta versión". No se
+clasifican ni se compara su SRC.
+
+## D-48 · Revisión de SRC informativa — **Aprobada** (NEREO, 2026-10-19)
+
+Nunca toca el semáforo y nunca corrige, asigna ni reproyecta. Estados: coincide, diferente, capa sin
+SRC, proyecto sin SRC, no aplica, SRC propio de servicio. Si el SRC asignado a la capa y el de su
+fuente son válidos y distintos, se muestra una advertencia de revisión específica. La comparación
+usa la de QGIS; una prueba comprueba que EPSG y su WKT equivalente se consideran iguales en 3.28,
+así que no hizo falta una comparación propia.
+
+## D-49 · Construcción solo bajo demanda — **Aprobada** (NEREO, 2026-10-19)
+
+El inventario se construye al abrir "Revisar capas" y al pulsar "Volver a revisar". No hay recálculo
+continuo con `layerModified`, `crsChanged` ni otras señales. Solo para proyectos administrados.
+
+## D-50 · Diálogo "Revisar capas" — **Aprobada** (NEREO, 2026-10-19)
+
+Diálogo nuevo. No se modifican `PanelEstado`, `IndicadorBarra`, el semáforo ni el manifiesto.
+
+## D-51 · Versión de desarrollo — **Aprobada** (NEREO, 2026-10-19)
+
+`0.2.0-dev` con `experimental=True`. Una prueba comprueba que `metadata.txt` coincide con
+`VERSION_COMPLEMENTO`.
+
+## D-52 · Reutilizar `monitoreo/descriptor_fuente.py` — **Aprobada** (NEREO, 2026-10-19)
+
+Se importan sus funciones públicas sin moverlas y sin importar funciones privadas. La decodificación
+adicional vive en el adaptador nuevo `inventario/lector_capas.py`.

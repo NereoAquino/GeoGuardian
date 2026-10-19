@@ -1,6 +1,6 @@
 """Valores fijos de GeoGuardian. Modulo puro: solo biblioteca estandar."""
 
-VERSION_COMPLEMENTO = "0.1.0"
+VERSION_COMPLEMENTO = "0.2.0-dev"
 VERSION_ESQUEMA = 3
 
 NOMBRE_COMPLEMENTO = "GeoGuardian"

@@ -4,22 +4,25 @@ from __future__ import annotations
 
 import os
 
-from qgis.core import Qgis, QgsProject
+from qgis.core import Qgis, QgsMessageLog, QgsProject
 from qgis.PyQt.QtCore import Qt, QTimer, QUrl
 from qgis.PyQt.QtGui import QDesktopServices, QIcon
 from qgis.PyQt.QtWidgets import QAction, QFileDialog, QPushButton, QToolBar
 
 from .administracion.administrador_proyecto import AdministradorProyecto
 from .administracion.registro_adopciones import RegistroAdopciones
-from .constantes import NOMBRE_COMPLEMENTO
+from .constantes import ETIQUETA_REGISTRO, NOMBRE_COMPLEMENTO
 from .dominio.advertencia_cierre import requiere_advertencia
 from .dominio.recuperacion import BOTON_LOCALIZAR, MENSAJE_UNIDAD_NO_ENCONTRADA
 from .dominio.semaforo import FRASE_VERSION_DISPONIBLE
 from .filtro_cierre import FiltroCierre
 from .interfaz.asistente_inicializacion import AsistenteInicializacion, mostrar_proyecto_creado
 from .interfaz.dialogo_cierre import AVISO_PANEL, preguntar_cierre, preguntar_cierre_version
+from .interfaz.dialogo_revisar_capas import TITULO as TITULO_REVISAR_CAPAS
+from .interfaz.dialogo_revisar_capas import DialogoRevisarCapas
 from .interfaz.indicador_barra import IndicadorBarra
 from .interfaz.panel_estado import BOTON_ABRIR_VERSION, TEXTO_BARRA_VERSION, PanelEstado
+from .inventario.servicio_inventario import ServicioInventario
 from .monitoreo.monitor_capas import MonitorCapas
 
 MENU = "&GeoGuardian"
@@ -35,6 +38,9 @@ class ComplementoGeoGuardian:
         self.filtro_cierre = None
         self.barra = None
         self.indicador = None
+        self.servicio_inventario = None
+        self.accion_revisar = None
+        self.dialogo_revisar = None
         self._acciones = []
         self._conexiones = []
         self._aviso_barra = None
@@ -62,6 +68,10 @@ class ComplementoGeoGuardian:
         self.barra.setObjectName("BarraGeoGuardian")
         self.indicador = IndicadorBarra(self.barra)
         self.barra.addWidget(self.indicador)
+        # "Revisar capas" (D-50) va en esta barra y no en el menu: el menu conserva sus tres acciones.
+        self.accion_revisar = QAction(TITULO_REVISAR_CAPAS, ventana)
+        self.accion_revisar.setToolTip("Revisa dónde están las capas del proyecto y su SRC (solo lectura)")
+        self.barra.addAction(self.accion_revisar)
         ventana.addToolBar(self.barra)
         self.indicador.ajustar_tamano(self.barra.iconSize())
 
@@ -70,6 +80,7 @@ class ComplementoGeoGuardian:
         self.monitor = MonitorCapas(proyecto)
         self.administrador = AdministradorProyecto(proyecto, self.monitor, RegistroAdopciones())
         self.administrador.conectar_senales()
+        self.servicio_inventario = ServicioInventario(proyecto, self._contexto_administrado)
 
         self.panel = PanelEstado(ventana)
         self.iface.addDockWidget(Qt.RightDockWidgetArea, self.panel)
@@ -87,6 +98,7 @@ class ComplementoGeoGuardian:
         self._conectar(self.accion_inicializar.triggered, self.abrir_asistente)
         self._conectar(self.accion_guardar.triggered, self.guardar_ahora)
         self._conectar(self.accion_panel.toggled, self.panel.setUserVisible)
+        self._conectar(self.accion_revisar.triggered, self.revisar_capas)
         self._conectar(self.panel.visibilityChanged, self.accion_panel.setChecked)
         self._conectar(self.panel.visibilityChanged, self.indicador.setChecked)
         self._conectar(self.indicador.clicked, self.alternar_panel)
@@ -123,6 +135,8 @@ class ComplementoGeoGuardian:
         self._retirar_aviso()
         self._retirar_oferta_version()
         self._retirar_aviso_recuperacion()
+        self._cerrar_revision()
+        self.servicio_inventario = None
         if self.administrador is not None:
             self.administrador.liberar()
             self.administrador.deleteLater()
@@ -139,6 +153,9 @@ class ComplementoGeoGuardian:
             self.barra.deleteLater()
             self.barra = None
             self.indicador = None
+        if self.accion_revisar is not None:
+            self.accion_revisar.deleteLater()
+            self.accion_revisar = None
         for accion in self._acciones:
             self.iface.removePluginMenu(MENU, accion)
             accion.deleteLater()
@@ -210,9 +227,47 @@ class ComplementoGeoGuardian:
             self.indicador.mostrar(nivel, motivos, frase)
         self.accion_guardar.setEnabled(resumen.administrado)
         self.accion_inicializar.setEnabled(not resumen.administrado and not resumen.version_administrada)
+        self.accion_revisar.setEnabled(resumen.administrado)  # solo proyectos administrados (D-49)
         self._actualizar_aviso(
             requiere_advertencia(resumen.administrado, resumen.tiene_archivo, resumen.numero_capas)
         )
+
+    # --- Revisar capas (v0.2.0, Hito 1: D-40 a D-52) -------------------------
+
+    def revisar_capas(self, *_args):
+        """Abre el dialogo y construye el inventario en ese momento (D-49). Solo lectura."""
+        if self.servicio_inventario is None or not self.servicio_inventario.disponible():
+            self.iface.messageBar().pushInfo(
+                NOMBRE_COMPLEMENTO, "Revisar capas está disponible en proyectos administrados."
+            )
+            return
+        if self.dialogo_revisar is None:
+            self.dialogo_revisar = DialogoRevisarCapas(self._construir_inventario, self.iface.mainWindow())
+        self.dialogo_revisar.revisar()
+        self.dialogo_revisar.show()
+        self.dialogo_revisar.raise_()
+        self.dialogo_revisar.activateWindow()
+
+    def _contexto_administrado(self):
+        if self.administrador is None or not self.administrador.es_administrado:
+            return None
+        return self.administrador.contexto
+
+    def _construir_inventario(self):
+        # Un fallo no se anota en gg_eventos: el inventario no escribe nada (D-40).
+        try:
+            return self.servicio_inventario.construir() if self.servicio_inventario else None
+        except Exception as error:  # noqa: BLE001
+            QgsMessageLog.logMessage("revisar_capas: {}".format(error), ETIQUETA_REGISTRO, Qgis.Critical)
+            self._mostrar_error("No se pudieron revisar las capas: {}".format(error))
+            return None
+
+    def _cerrar_revision(self):
+        """El dialogo muestra un proyecto concreto: se cierra si cambia el proyecto."""
+        if self.dialogo_revisar is not None:
+            self.dialogo_revisar.close()
+            self.dialogo_revisar.deleteLater()
+            self.dialogo_revisar = None
 
     # --- aviso persistente de proyecto no administrado (D-17 A.2) ----------
 
@@ -265,6 +320,7 @@ class ComplementoGeoGuardian:
         self._retirar_oferta_version()
         self._retirar_aviso_recuperacion()
         self._aviso_especifico = False
+        self._cerrar_revision()
 
     def _dar_prioridad_al_aviso_especifico(self):
         self._aviso_especifico = True

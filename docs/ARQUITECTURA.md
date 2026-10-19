@@ -3,6 +3,7 @@
 > Estado: **aprobada** el 2026-10-18 (todas las decisiones de [DECISIONES.md](DECISIONES.md)).
 > **Publicada como v0.1.0 estable el 2026-10-19.** Las secciones 10 a 13 (rc2) describen la
 > arquitectura vigente de 0.1.0.
+> **v0.2.0-dev:** la sección 14 describe el Hito 1 (inventario y "Revisar capas", D-40 a D-52).
 
 ## 1. Propósito
 
@@ -432,3 +433,45 @@ El asistente no guarda estado propio entre páginas: cada página relee de las a
 `PaginaResumen.validatePage` llama a `AdministradorProyecto.inicializar`. El último guardado de
 D-38 no cambia.
 
+## 14. v0.2.0 · Hito 1: inventario y "Revisar capas" (D-40 a D-52, aprobadas el 2026-10-19)
+
+```
+geoguardian/
+├── dominio/
+│   ├── inventario.py                NUEVO · OrigenFuente, Disponibilidad, EstadoSrc (Enum);
+│   │                                EntradaCapa, IdentidadFuente, FuenteInventariada,
+│   │                                CapaInventariada, Inventario (dataclasses inmutables)
+│   └── clasificacion_inventario.py  NUEVO · clasificar_origen, evaluar_disponibilidad, evaluar_src,
+│                                    identidad_de, construir_inventario, equivalente_v010 (pruebas)
+├── inventario/                      NUEVO · ── usa PyQGIS; solo lee ──
+│   ├── lector_capas.py              leer_capa(QgsMapLayer, contexto, src) -> EntradaCapa
+│   └── servicio_inventario.py       ServicioInventario: construir() bajo demanda
+├── interfaz/
+│   └── dialogo_revisar_capas.py     NUEVO · DialogoRevisarCapas(QDialog)
+└── complemento.py                   MODIFICADO · acción "Revisar capas" en la barra de GeoGuardian
+```
+
+**Flujo.** La acción solo está activa en proyectos administrados. Al pulsarla, `complemento.py` crea
+el diálogo (una vez) y le pasa `_construir_inventario`, que llama a `ServicioInventario.construir()`.
+El servicio recorre las capas en el orden del árbol, `leer_capa` traduce cada `QgsMapLayer` a una
+`EntradaCapa` (datos planos, sin QGIS) y `construir_inventario` clasifica y agrupa en el dominio puro.
+"Volver a revisar" repite el proceso. No se conecta ninguna señal (D-49). Si cambia el proyecto
+administrado, el diálogo se cierra.
+
+**Solo lectura (D-40).** Los módulos del inventario no importan `persistencia`, `manifiesto`,
+`eventos`, `administracion` ni `sqlite3` (lo comprueba una prueba). Un error al revisar se informa en
+el registro de mensajes de QGIS y en la barra de mensajes, nunca en `gg_eventos`.
+
+**SRC de la fuente.** En QGIS 3.28 `sourceCrs()` devuelve el SRC asignado a la capa, no el de la
+fuente. El SRC original se lee de `dataProvider().crs()`.
+
+**Por qué la barra de herramientas y no el menú.** El menú *Complementos → GeoGuardian* conserva sus
+tres acciones de v0.1.0, que las pruebas de línea base cuentan al descargar el complemento.
+
+### Reglas de dependencia (adiciones)
+
+| Paquete | Puede importar | No puede importar |
+|---|---|---|
+| `dominio` (inventario) | biblioteca estándar, `constantes`, otros módulos de `dominio` | todo lo demás |
+| `inventario` | `dominio`, `contexto`, `constantes`, `monitoreo.descriptor_fuente` (solo funciones públicas), `qgis.core` | `persistencia`, `manifiesto`, `eventos`, `administracion`, `interfaz`, `sqlite3` |
+| `interfaz/dialogo_revisar_capas.py` | `dominio`, Qt | `inventario`, `persistencia` (recibe la función que construye) |

@@ -1,5 +1,20 @@
 # Cambios de GeoGuardian
 
+## 0.2.0-dev (en desarrollo)
+
+Hito 1, decisiones D-40 a D-52 (ver `docs/DECISIONES.md`). Versión experimental.
+
+- Botón **Revisar capas** en la barra de herramientas de GeoGuardian, activo en proyectos
+  administrados. Abre un diálogo que muestra, sin cambiar nada, dónde está cada capa vectorial
+  (Proyecto.gpkg, carpeta del proyecto, fuera de ella, temporal, servicio en internet, base de datos
+  externa, virtual), si está disponible y si su SRC coincide con el del proyecto.
+- Advierte cuando el SRC asignado a una capa es distinto del que declara su fuente.
+- Las capas ráster, de malla y de nube de puntos aparecen como "No revisada en esta versión".
+- El inventario vive solo en memoria y se construye al abrir el diálogo o al pulsar
+  **Volver a revisar**: sin tablas, eventos, migraciones ni cambios en el manifiesto, el semáforo o
+  el panel.
+- Versión `0.2.0-dev`, marcada como experimental.
+
 ## 0.1.0 (2026-10-19)
 
 Primera versión estable de GeoGuardian. Deriva de 0.1.0-rc2, validada con las pruebas
