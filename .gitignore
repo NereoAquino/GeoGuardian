@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+env/
+
+# Editores y sistema operativo
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Temporales
+*.log
+*.tmp
+*.bak
+
+# Artefactos de construccion: el ZIP instalable se genera con herramientas/construir_zip.py
+dist/
+*.zip
+
+# Capturas de pantalla de trabajo y perfiles locales de QGIS
+capturas_rc2/
+QGIS3/
+profiles/
