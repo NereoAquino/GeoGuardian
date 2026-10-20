@@ -8,9 +8,9 @@ se aplica salvo objeción), **Aprobada**, **Rechazada**.
 > D-33 a D-38 se validaron además con pruebas manuales en Windows. La funcionalidad de v0.1.0 está
 > congelada; las propuestas nuevas se registran para v0.2.0.
 >
-> **v0.2.0 (en desarrollo).** D-40 a D-52 están aprobadas (NEREO, 2026-10-19) para el Hito 1:
-> inventario y revisión de capas de solo lectura. El análisis previo está en el informe de revisión
-> técnica del Hito 1.
+> **v0.2.0 (en desarrollo).** D-40 a D-52 (NEREO, 2026-10-19) y D-53 a D-55 (NEREO, 2026-10-20)
+> están aprobadas para el Hito 1: inventario y revisión de capas de solo lectura. El análisis previo
+> está en el informe de revisión técnica del Hito 1.
 
 ---
 
@@ -743,3 +743,26 @@ Diálogo nuevo. No se modifican `PanelEstado`, `IndicadorBarra`, el semáforo ni
 
 Se importan sus funciones públicas sin moverlas y sin importar funciones privadas. La decodificación
 adicional vive en el adaptador nuevo `inventario/lector_capas.py`.
+
+## D-53 · "Revisar capas" en la barra de herramientas — **Aprobada** (NEREO, 2026-10-20)
+
+En v0.2.0, "Revisar capas" se incorpora como acción de la barra de herramientas de GeoGuardian. No se
+añade al menú *Complementos → GeoGuardian* durante este hito. La prueba de línea base que cuenta las
+acciones del menú no se modifica.
+
+## D-54 · SRC declarado por la fuente — **Aprobada** (NEREO, 2026-10-20)
+
+Para contrastar el SRC asignado a una capa con el declarado por su fuente, GeoGuardian utiliza el SRC
+del proveedor de datos (`dataProvider().crs()`) cuando está disponible, porque en QGIS 3.28
+`sourceCrs()` devuelve el SRC asignado. GeoGuardian únicamente informa: nunca reasigna SRC, no
+reproyecta, no modifica el SRC del proyecto y no corrige la capa.
+
+Si QGIS considera distintos dos SRC (por ejemplo `OGC:CRS84` y `EPSG:4326`), GeoGuardian respeta esa
+diferencia y no define equivalencias propias. La interfaz dice "distinto al proyecto", nunca
+"incorrecto", y la diferencia no cambia el semáforo.
+
+## D-55 · Tablas internas `gg_*` fuera del inventario — **Aprobada** (NEREO, 2026-10-20)
+
+Las tablas internas `gg_*` quedan excluidas de la interfaz de inventario. No aparecen como capas
+revisables ni como "registro de GeoGuardian"; conservan el mismo tratamiento de exclusión que en
+v0.1.0.
