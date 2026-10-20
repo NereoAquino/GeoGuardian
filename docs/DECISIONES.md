@@ -10,7 +10,9 @@ se aplica salvo objeción), **Aprobada**, **Rechazada**.
 >
 > **v0.2.0 (en desarrollo).** D-40 a D-52 (NEREO, 2026-10-19) y D-53 a D-55 (NEREO, 2026-10-20)
 > están aprobadas para el Hito 1: inventario y revisión de capas de solo lectura. El análisis previo
-> está en el informe de revisión técnica del Hito 1.
+> está en el informe de revisión técnica del Hito 1. El Hito 1 quedó completado y validado en QGIS
+> Windows el 2026-10-20 ([validacion_hito1_windows.md](validacion_hito1_windows.md)); D-40 a D-55
+> quedan congeladas.
 
 ---
 

@@ -3,7 +3,8 @@
 > Estado: **aprobada** el 2026-10-18 (todas las decisiones de [DECISIONES.md](DECISIONES.md)).
 > **Publicada como v0.1.0 estable el 2026-10-19.** Las secciones 10 a 13 (rc2) describen la
 > arquitectura vigente de 0.1.0.
-> **v0.2.0-dev:** la sección 14 describe el Hito 1 (inventario y "Revisar capas", D-40 a D-52).
+> **v0.2.0-dev:** la sección 14 describe el Hito 1 (inventario y "Revisar capas", D-40 a D-55),
+> completado y validado el 2026-10-20.
 
 ## 1. Propósito
 

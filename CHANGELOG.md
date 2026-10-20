@@ -2,7 +2,10 @@
 
 ## 0.2.0-dev (en desarrollo)
 
-Hito 1, decisiones D-40 a D-52 (ver `docs/DECISIONES.md`). Versión experimental.
+Hito 1, decisiones D-40 a D-55 (ver `docs/DECISIONES.md`). Versión experimental.
+
+**Hito 1 completado y validado** (2026-10-20): pruebas automatizadas en QGIS 3.28 y validación manual
+en QGIS Windows (`docs/validacion_hito1_windows.md`).
 
 - Botón **Revisar capas** en la barra de herramientas de GeoGuardian, activo en proyectos
   administrados. Abre un diálogo que muestra, sin cambiar nada, dónde está cada capa vectorial
