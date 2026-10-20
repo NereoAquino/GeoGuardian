@@ -18,6 +18,17 @@ en QGIS Windows (`docs/validacion_hito1_windows.md`).
   el panel.
 - Versión `0.2.0-dev`, marcada como experimental.
 
+**Hito 2 implementado** (2026-10-20), decisiones D-56 a D-68. Pendiente de validación manual.
+
+- "Revisar capas" agrega una casilla por capa y la columna **Incorporar**, que dice si cada
+  elemento se puede incorporar a Proyecto.gpkg, si conviene hacerlo o qué requiere atención.
+- Las capas que comparten fuente se marcan juntas; un conteo indica cuántos elementos y capas se
+  incorporarían.
+- **Preparar incorporación** revisa de nuevo el proyecto y muestra un plan con el nombre que tendría
+  cada elemento en Proyecto.gpkg, los conflictos de nombre resueltos y las advertencias. Si algo
+  cambió desde la revisión, pide volver a revisar.
+- Es solo un plan: no se copia, mueve, reproyecta ni reenlaza nada, y no se guarda en ninguna parte.
+
 ## 0.1.0 (2026-10-19)
 
 Primera versión estable de GeoGuardian. Deriva de 0.1.0-rc2, validada con las pruebas

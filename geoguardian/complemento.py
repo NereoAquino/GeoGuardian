@@ -10,16 +10,18 @@ from qgis.PyQt.QtGui import QDesktopServices, QIcon
 from qgis.PyQt.QtWidgets import QAction, QFileDialog, QPushButton, QToolBar
 
 from .administracion.administrador_proyecto import AdministradorProyecto
+from .administracion.identidad_proyecto import id_desde_geopaquete
 from .administracion.registro_adopciones import RegistroAdopciones
 from .constantes import ETIQUETA_REGISTRO, NOMBRE_COMPLEMENTO
 from .dominio.advertencia_cierre import requiere_advertencia
 from .dominio.recuperacion import BOTON_LOCALIZAR, MENSAJE_UNIDAD_NO_ENCONTRADA
 from .dominio.semaforo import FRASE_VERSION_DISPONIBLE
 from .filtro_cierre import FiltroCierre
+from .incorporacion.servicio_plan import ServicioPlan
 from .interfaz.asistente_inicializacion import AsistenteInicializacion, mostrar_proyecto_creado
 from .interfaz.dialogo_cierre import AVISO_PANEL, preguntar_cierre, preguntar_cierre_version
 from .interfaz.dialogo_revisar_capas import TITULO as TITULO_REVISAR_CAPAS
-from .interfaz.dialogo_revisar_capas import DialogoRevisarCapas
+from .interfaz.dialogo_incorporacion import DialogoRevisarCapasConPlan
 from .interfaz.indicador_barra import IndicadorBarra
 from .interfaz.panel_estado import BOTON_ABRIR_VERSION, TEXTO_BARRA_VERSION, PanelEstado
 from .inventario.servicio_inventario import ServicioInventario
@@ -39,6 +41,7 @@ class ComplementoGeoGuardian:
         self.barra = None
         self.indicador = None
         self.servicio_inventario = None
+        self.servicio_plan = None
         self.accion_revisar = None
         self.dialogo_revisar = None
         self._acciones = []
@@ -81,6 +84,9 @@ class ComplementoGeoGuardian:
         self.administrador = AdministradorProyecto(proyecto, self.monitor, RegistroAdopciones())
         self.administrador.conectar_senales()
         self.servicio_inventario = ServicioInventario(proyecto, self._contexto_administrado)
+        self.servicio_plan = ServicioPlan(
+            proyecto, self._contexto_administrado, self.servicio_inventario.construir, id_desde_geopaquete
+        )
 
         self.panel = PanelEstado(ventana)
         self.iface.addDockWidget(Qt.RightDockWidgetArea, self.panel)
@@ -137,6 +143,7 @@ class ComplementoGeoGuardian:
         self._retirar_aviso_recuperacion()
         self._cerrar_revision()
         self.servicio_inventario = None
+        self.servicio_plan = None
         if self.administrador is not None:
             self.administrador.liberar()
             self.administrador.deleteLater()
@@ -242,7 +249,9 @@ class ComplementoGeoGuardian:
             )
             return
         if self.dialogo_revisar is None:
-            self.dialogo_revisar = DialogoRevisarCapas(self._construir_inventario, self.iface.mainWindow())
+            self.dialogo_revisar = DialogoRevisarCapasConPlan(
+                self._construir_inventario, self._construir_plan, self._preparar_plan, self.iface.mainWindow()
+            )
         self.dialogo_revisar.revisar()
         self.dialogo_revisar.show()
         self.dialogo_revisar.raise_()
@@ -260,6 +269,23 @@ class ComplementoGeoGuardian:
         except Exception as error:  # noqa: BLE001
             QgsMessageLog.logMessage("revisar_capas: {}".format(error), ETIQUETA_REGISTRO, Qgis.Critical)
             self._mostrar_error("No se pudieron revisar las capas: {}".format(error))
+            return None
+
+    # --- Preparar incorporacion (v0.2.0, Hito 2: D-56 a D-68) -----------------
+
+    def _construir_plan(self, inventario):
+        # Como el inventario: un fallo va al registro de mensajes, nunca a gg_eventos (D-68).
+        try:
+            return self.servicio_plan.construir(inventario) if self.servicio_plan else None
+        except Exception as error:  # noqa: BLE001
+            QgsMessageLog.logMessage("preparar_incorporacion: {}".format(error), ETIQUETA_REGISTRO, Qgis.Critical)
+            return None
+
+    def _preparar_plan(self, plan):
+        try:
+            return self.servicio_plan.revalidar(plan) if self.servicio_plan else None
+        except Exception as error:  # noqa: BLE001
+            QgsMessageLog.logMessage("preparar_incorporacion: {}".format(error), ETIQUETA_REGISTRO, Qgis.Critical)
             return None
 
     def _cerrar_revision(self):

@@ -476,3 +476,52 @@ tres acciones de v0.1.0, que las pruebas de línea base cuentan al descargar el 
 | `dominio` (inventario) | biblioteca estándar, `constantes`, otros módulos de `dominio` | todo lo demás |
 | `inventario` | `dominio`, `contexto`, `constantes`, `monitoreo.descriptor_fuente` (solo funciones públicas), `qgis.core` | `persistencia`, `manifiesto`, `eventos`, `administracion`, `interfaz`, `sqlite3` |
 | `interfaz/dialogo_revisar_capas.py` | `dominio`, Qt | `inventario`, `persistencia` (recibe la función que construye) |
+
+## 15. v0.2.0 · Hito 2: preparación de incorporación (D-56 a D-68, aprobadas el 2026-10-20)
+
+```
+geoguardian/
+├── dominio/
+│   ├── plan_incorporacion.py        NUEVO · Elegibilidad, MotivoAtencion, Seleccion (Enum);
+│   │                                DatosCapaPlan, HuellaUnidad, DestinoPlan, UnidadIncorporacion,
+│   │                                PlanIncorporacion (inmutables); construir_plan, con_seleccion,
+│   │                                seleccion_tras_revisar y los textos de la interfaz
+│   ├── nombres_destino.py           NUEVO · nombre_valido, resolver_nombres (D-62)
+│   └── revalidacion.py              NUEVO · revalidar(plan anterior, plan actual) (D-64)
+├── incorporacion/                   NUEVO · ── usa PyQGIS; solo lee ──
+│   ├── lector_plan.py               leer_datos_capa(QgsMapLayer) -> DatosCapaPlan
+│   ├── lector_geopaquete.py         nombres_ocupados(Proyecto.gpkg), sqlite3 en mode=ro (D-63)
+│   └── servicio_plan.py             ServicioPlan: destino(), construir(), revalidar()
+├── interfaz/
+│   └── dialogo_incorporacion.py     NUEVO · DialogoRevisarCapasConPlan(DialogoRevisarCapas)
+└── complemento.py                   MODIFICADO · crea ServicioPlan y abre el diálogo con plan
+```
+
+**Flujo.** "Revisar capas" abre ahora `DialogoRevisarCapasConPlan`. Tras mostrar el inventario del
+Hito 1, el diálogo pide el plan (`complemento._construir_plan` → `ServicioPlan.construir`). El
+servicio valida el destino con el contexto activo y con `id_desde_geopaquete` (inyectado), lee los
+nombres ocupados de Proyecto.gpkg, y `leer_datos_capa` traduce cada capa vectorial revisada a
+`DatosCapaPlan`: filtro, `geometrytype`, subcapa real, SRC de la capa y del proveedor, edición,
+campos, campos calculados, estado de `fid`, geometrías mezcladas y archivos del conjunto.
+`construir_plan` agrupa por `clave_unidad` (D-56), evalúa cada unidad y asigna nombres (D-62). Al
+pulsar "Preparar incorporación", `ServicioPlan.revalidar` reconstruye inventario y plan con la
+selección del estudiante y `revalidar()` decide si el plan sigue vigente (D-64). Ninguna señal se
+conecta.
+
+**Solo lectura (D-68).** Ningún módulo nuevo escribe. Una prueba recorre el árbol sintáctico de los
+módulos nuevos: no importan `persistencia`, `manifiesto`, `eventos` ni `administracion`; `sqlite3`
+solo aparece en `lector_geopaquete.py`, cuyas consultas son `SELECT` y abren con `?mode=ro`. La
+prueba de integración de solo lectura compara antes y después de preparar, revalidar y ver el plan:
+sumas SHA-256 y fechas de Proyecto.gpkg, `.qgz`, manifiesto y fuentes; listado de las carpetas;
+conteos de `gg_eventos` y `gg_recursos`; fuentes, filtros, SRC, edición e indicador de cambios.
+
+**Por qué un paquete nuevo y no `inventario/`.** La prueba del Hito 1 prohíbe `sqlite3` en todo
+`inventario/`, y esa prueba está congelada.
+
+### Reglas de dependencia (adiciones)
+
+| Paquete | Puede importar | No puede importar |
+|---|---|---|
+| `dominio` (plan) | biblioteca estándar, `constantes`, otros módulos de `dominio` | todo lo demás |
+| `incorporacion` | `dominio`, `contexto`, `constantes`, `inventario`, `monitoreo.descriptor_fuente` (solo funciones públicas), `qgis.core`, Qt; `sqlite3` solo en `lector_geopaquete.py` | `persistencia`, `manifiesto`, `eventos`, `administracion`, `interfaz` |
+| `interfaz/dialogo_incorporacion.py` | `dominio`, `interfaz/dialogo_revisar_capas.py`, Qt | `inventario`, `incorporacion`, `persistencia` (recibe las funciones que construyen y revalidan) |

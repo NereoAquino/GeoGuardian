@@ -13,6 +13,11 @@ se aplica salvo objeción), **Aprobada**, **Rechazada**.
 > está en el informe de revisión técnica del Hito 1. El Hito 1 quedó completado y validado en QGIS
 > Windows el 2026-10-20 ([validacion_hito1_windows.md](validacion_hito1_windows.md)); D-40 a D-55
 > quedan congeladas.
+>
+> **v0.2.0 · Hito 2 (en desarrollo).** D-56 a D-68 (NEREO, 2026-10-20) están aprobadas e
+> implementadas para la preparación de incorporación: un plan en memoria que no escribe, copia,
+> mueve, reproyecta ni reenlaza nada. El análisis previo está en el informe de revisión técnica del
+> Hito 2.
 
 ---
 
@@ -768,3 +773,116 @@ diferencia y no define equivalencias propias. La interfaz dice "distinto al proy
 Las tablas internas `gg_*` quedan excluidas de la interfaz de inventario. No aparecen como capas
 revisables ni como "registro de GeoGuardian"; conservan el mismo tratamiento de exclusión que en
 v0.1.0.
+
+## D-56 · Unidad de incorporación — **Aprobada** (NEREO, 2026-10-20)
+
+La unidad que se incorpora es la `FuenteInventariada` del Hito 1 más el filtro (`subset`) y el
+`geometrytype` de la capa. Solo el planificador la calcula (`clave_unidad`); la identidad y la
+agrupación del Hito 1 no cambian. Un GeoPackage abierto sin `layername` se une con su referencia
+explícita a la tabla solo cuando la resolución es inequívoca: el proveedor ofrece un único nombre de
+tabla. Con varias tablas y ninguna indicada, la capa queda como unidad aparte.
+
+## D-57 · Modelo del plan — **Aprobada** (NEREO, 2026-10-20)
+
+`dominio/plan_incorporacion.py` define `Elegibilidad`, `MotivoAtencion`, `Seleccion`,
+`UnidadIncorporacion`, `PlanIncorporacion` y `HuellaUnidad`, en paralelo a `EstadoRecurso`, que no se
+toca. Si Proyecto.gpkg no está validado por el contexto activo (`geopaquete_utilizable` y el mismo
+`id_proyecto` en `gg_proyecto`), no hay plan ejecutable: la columna "Incorporar" muestra "—" y el
+motivo.
+
+## D-58 · Preselección — **Aprobada** (NEREO, 2026-10-20)
+
+Se preseleccionan solo las unidades disponibles, sin edición, sin incompatibilidades, con SRC
+coherente y sin motivos de atención cuyo origen sea: archivo local en la carpeta del proyecto,
+archivo local externo, capa en memoria, archivo temporal de Procesos o tabla local sin geometría. Lo
+demás que se puede incorporar queda seleccionable pero desmarcado.
+
+## D-59 · SRC en el plan — **Aprobada** (NEREO, 2026-10-20)
+
+| Caso | Resultado | Texto |
+|---|---|---|
+| SRC diferente al proyecto | Incorporable, no preseleccionada; se conserva el SRC de la fuente | "SRC diferente al proyecto" |
+| SRC asignado distinto del que declara la fuente | No incorporable | "Revisa el SRC asignado. El SRC de la capa no coincide con el que declara el archivo. Corrige esta situación y vuelve a revisar." |
+| Archivo sin SRC | No incorporable | "La capa no tiene SRC. Define correctamente su sistema de coordenadas y vuelve a revisar." |
+| Capa temporal sin SRC (opción A) | No incorporable | "Esta capa temporal no tiene SRC. Define su sistema de coordenadas antes de incorporarla." |
+
+GeoGuardian nunca reproyecta ni reasigna SRC. Caso intermedio resuelto en la implementación: si el
+archivo no declara SRC pero la capa tiene uno definido en QGIS, la unidad queda seleccionable, sin
+preselección, con el aviso "SRC definido solo en QGIS" (pendiente de confirmar por NEREO).
+
+## D-60 · Capas en edición — **Aprobada** (NEREO, 2026-10-20)
+
+La unidad se bloquea si cualquiera de sus capas tiene `isEditable()` o `isModified()`: "Está en modo
+edición. Termina la edición antes de incorporarla." o "Tiene cambios sin guardar. Guarda o descarta
+los cambios antes de incorporarla." Se evalúan todas las capas de la unidad, lo que cubre
+`AutomaticGroups` y `BufferedGroups`. `MonitorCapas` no se modifica y GeoGuardian nunca inicia ni
+termina una edición.
+
+## D-61 · Campos incompatibles — **Aprobada** (NEREO, 2026-10-20)
+
+No incorporable: campo `fid` que no es clave primaria compatible, con valores repetidos o vacíos, o de
+tipo no entero; nombres de campo repetidos sin distinguir mayúsculas (`ID`/`id`); un campo de
+atributos llamado `geom` en una capa con geometría; geometrías mezcladas sin `geometrytype`
+explícito. Un `fid` que ya es la clave primaria entera de un GeoPackage no se bloquea. Los campos
+calculados solo advierten: "Los campos calculados se guardarán como valores y dejarán de
+recalcularse automáticamente."
+
+## D-62 · Nombres destino — **Aprobada** (NEREO, 2026-10-20)
+
+`dominio/nombres_destino.py`. Se conservan espacios, acentos, ñ, Unicode y emoji. Se aplica NFC y
+`strip`; `|`, `"` y los caracteres de control se sustituyen por `_`; un nombre vacío pasa a `capa`; el
+prefijo `capa_` se antepone si el nombre empieza por `gpkg`, `sqlite_`, `rtree_` o `gg_`. Se compara
+con `casefold()`; los conflictos se resuelven como `nombre_2`, `nombre_3`… con el primer sufijo libre,
+y los nombres ya asignados en el plan cuentan como ocupados. Las unidades filtradas, por
+`geometrytype` o temporales usan el nombre visible de su primera capa. Los nombres se calculan para
+todas las unidades incorporables en orden estable de `clave_unidad`, sin importar la selección. Sin
+límite de longitud: la interfaz recorta a la vista y muestra el nombre completo en la ayuda.
+
+## D-63 · Lectura de nombres ocupados — **Aprobada** (NEREO, 2026-10-20)
+
+`incorporacion/lector_geopaquete.py` lee con `sqlite3` en modo `mode=ro`, desde `sqlite_master` y
+`gpkg_contents`, con dos consultas `SELECT`. No usa `geopaquete.tablas_presentes()`. Todos los objetos
+(`gg_*`, índices, vistas, disparadores, tablas `rtree_*`) cuentan como reservados.
+
+## D-64 · Huella y revalidación — **Aprobada** (NEREO, 2026-10-20)
+
+Cada unidad guarda una `HuellaUnidad`: por capa, id, proveedor, fuente pública sin credenciales,
+filtro, `geometrytype`, SRC de la capa y del proveedor, estado de edición, firma de campos y, en
+memoria, número de entidades y extensión (aproximado); por archivo, ruta, tamaño y `mtime_ns`,
+incluidos los auxiliares (`.shx`, `.dbf`, `.prj`, `.cpg`, `-wal`). El destino guarda ruta,
+`id_proyecto`, `geopaquete_utilizable` y nombres ocupados. Al pulsar "Preparar incorporación" se
+reconstruyen inventario y plan, y `dominio/revalidacion.revalidar()` los compara. Si algo cambió, se
+muestra "Algunas capas cambiaron desde la última revisión. Vuelve a revisar antes de continuar." con
+el detalle por elemento, y nunca un plan desactualizado. La función es pura y se reutilizará en el
+Hito 3.
+
+## D-65 · Interfaz — **Aprobada** (NEREO, 2026-10-20)
+
+`interfaz/dialogo_incorporacion.py` define `DialogoRevisarCapasConPlan(DialogoRevisarCapas)`;
+`dialogo_revisar_capas.py` no se modifica y conserva columnas y textos. Se agregan una casilla en la
+celda "Capa", la columna "Incorporar" (mostrada junto a "Capa"; en el modelo sigue siendo la sexta),
+la selección enlazada entre capas de una misma unidad, el conteo ("3 elementos por incorporar (4
+capas relacionadas)") y el botón "Preparar incorporación". La vista previa es una segunda página de
+la misma ventana: "Esto es un plan: todavía no se ha copiado ni cambiado nada.", un resumen, una tabla
+con elemento, origen, destino propuesto, capas relacionadas y advertencias (los conflictos se ven
+como "municipios_4 (municipios ya existe)") y "← Volver a la lista". No hay botón "Incorporar".
+
+## D-66 · "Volver a revisar" — **Aprobada** (NEREO, 2026-10-20)
+
+Se conserva la selección de las unidades que siguen existiendo y siendo seleccionables, se
+preseleccionan las nuevas, se desmarcan las que ahora tienen advertencias nuevas y se desmarcan y
+desactivan las bloqueadas.
+
+## D-67 · Paquete `incorporacion` — **Aprobada** (NEREO, 2026-10-20)
+
+`geoguardian/incorporacion/` puede depender de `dominio`, `contexto`, `constantes`, `inventario`, las
+funciones públicas de `monitoreo.descriptor_fuente`, `qgis.core`, Qt y, solo en
+`lector_geopaquete.py`, `sqlite3`. No depende de `persistencia`, `manifiesto`, `eventos` ni
+`administracion`; `id_desde_geopaquete` se inyecta desde `complemento.py`.
+
+## D-68 · Solo en memoria — **Aprobada** (NEREO, 2026-10-20)
+
+El plan es inmutable y vive solo en memoria: sin tablas, esquema, eventos en `gg_eventos`, cambios
+en el manifiesto ni en el semáforo. Los errores van al registro de mensajes de QGIS. Filtros: misma
+fuente sin filtro, una unidad; filtros o `geometrytype` distintos, unidades distintas, sin
+preselección y con aviso. Los dialectos de filtro de OGR y SQLite no se traducen.
