@@ -14,10 +14,10 @@ se aplica salvo objeción), **Aprobada**, **Rechazada**.
 > Windows el 2026-10-20 ([validacion_hito1_windows.md](validacion_hito1_windows.md)); D-40 a D-55
 > quedan congeladas.
 >
-> **v0.2.0 · Hito 2 (en desarrollo).** D-56 a D-68 (NEREO, 2026-10-20) están aprobadas e
+> **v0.2.0 · Hito 2 (en desarrollo).** D-56 a D-70 (NEREO, 2026-10-20) están aprobadas e
 > implementadas para la preparación de incorporación: un plan en memoria que no escribe, copia,
-> mueve, reproyecta ni reenlaza nada. El análisis previo está en el informe de revisión técnica del
-> Hito 2.
+> mueve, reproyecta ni reenlaza nada. D-69 y D-70 son ajustes posteriores a la revisión de la
+> entrega. El Hito 2 está aprobado técnicamente y pendiente de validación manual en Windows.
 
 ---
 
@@ -806,9 +806,8 @@ demás que se puede incorporar queda seleccionable pero desmarcado.
 | Archivo sin SRC | No incorporable | "La capa no tiene SRC. Define correctamente su sistema de coordenadas y vuelve a revisar." |
 | Capa temporal sin SRC (opción A) | No incorporable | "Esta capa temporal no tiene SRC. Define su sistema de coordenadas antes de incorporarla." |
 
-GeoGuardian nunca reproyecta ni reasigna SRC. Caso intermedio resuelto en la implementación: si el
-archivo no declara SRC pero la capa tiene uno definido en QGIS, la unidad queda seleccionable, sin
-preselección, con el aviso "SRC definido solo en QGIS" (pendiente de confirmar por NEREO).
+GeoGuardian nunca reproyecta ni reasigna SRC. El caso en que el archivo no declara SRC pero la capa
+tiene uno definido en QGIS lo resuelve D-69.
 
 ## D-60 · Capas en edición — **Aprobada** (NEREO, 2026-10-20)
 
@@ -886,3 +885,32 @@ El plan es inmutable y vive solo en memoria: sin tablas, esquema, eventos en `gg
 en el manifiesto ni en el semáforo. Los errores van al registro de mensajes de QGIS. Filtros: misma
 fuente sin filtro, una unidad; filtros o `geometrytype` distintos, unidades distintas, sin
 preselección y con aviso. Los dialectos de filtro de OGR y SQLite no se traducen.
+
+## D-69 · SRC definido solo en QGIS — **Aprobada** (NEREO, 2026-10-20)
+
+Si una fuente espacial local no declara un SRC válido, un SRC asignado únicamente en QGIS no permite
+incorporarla. La unidad queda bloqueada hasta que la fuente tenga un SRC correctamente definido.
+
+**Motivo.** Incorporar esa capa convertiría una asignación de capa en un SRC persistente dentro de
+Proyecto.gpkg y ocultaría que el archivo original no tenía SRC.
+
+**Comportamiento.** Con `dataProvider().crs()` inválido y `capa.crs()` válido: `NO_INCORPORABLE`,
+`NO_SELECCIONABLE`, casilla desactivada, sin destino y fuera de la vista previa; la capa sigue
+visible en la lista. Texto: "Necesita atención: SRC definido solo en QGIS". Ayuda: "El archivo
+original no declara un sistema de coordenadas. Define correctamente su SRC y vuelve a revisar antes
+de incorporarlo." No hay acción automática: el estudiante corrige y pulsa "Volver a revisar".
+Complementa D-59 y tiene prioridad sobre "SRC diferente al proyecto". Sustituye la advertencia
+seleccionable de la primera implementación del Hito 2.
+
+## D-70 · Plan obsoleto — **Aprobada** (NEREO, 2026-10-20)
+
+Cuando la revalidación detecta cambios, el plan queda obsoleto y "Preparar incorporación" permanece
+deshabilitado hasta completar "Volver a revisar".
+
+**Comportamiento.** Al fallar la revalidación (o si no se pudo preparar el plan), el diálogo marca
+el plan como obsoleto, descarta el plan preparado y vacía la vista previa, muestra el aviso
+"Algunas capas cambiaron desde la última revisión. Vuelve a revisar antes de continuar." y
+deshabilita "Preparar incorporación". Cambiar casillas no lo reactiva. "Volver a revisar" sigue
+habilitado; al pulsarlo se reconstruyen inventario y plan, se limpia el estado obsoleto y el botón
+se habilita si el nuevo plan tiene elementos seleccionados. El plan anterior no puede volver a
+mostrarse sin una revisión nueva.

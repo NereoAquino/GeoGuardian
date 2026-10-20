@@ -18,7 +18,7 @@ en QGIS Windows (`docs/validacion_hito1_windows.md`).
   el panel.
 - Versión `0.2.0-dev`, marcada como experimental.
 
-**Hito 2 implementado** (2026-10-20), decisiones D-56 a D-68. Pendiente de validación manual.
+**Hito 2 implementado** (2026-10-20), decisiones D-56 a D-70.
 
 - "Revisar capas" agrega una casilla por capa y la columna **Incorporar**, que dice si cada
   elemento se puede incorporar a Proyecto.gpkg, si conviene hacerlo o qué requiere atención.
@@ -28,6 +28,10 @@ en QGIS Windows (`docs/validacion_hito1_windows.md`).
   cada elemento en Proyecto.gpkg, los conflictos de nombre resueltos y las advertencias. Si algo
   cambió desde la revisión, pide volver a revisar.
 - Es solo un plan: no se copia, mueve, reproyecta ni reenlaza nada, y no se guarda en ninguna parte.
+- Ajustes D-69 y D-70: una capa cuyo archivo no declara SRC ya no se puede incorporar aunque se le
+  haya asignado un SRC en QGIS; si al preparar el plan algo cambió, **Preparar incorporación** queda
+  deshabilitado hasta pulsar **Volver a revisar**.
+- Hito 2 aprobado técnicamente; pendiente de validación manual en Windows.
 
 ## 0.1.0 (2026-10-19)
 

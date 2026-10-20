@@ -53,6 +53,7 @@ class MotivoAtencion(str, Enum):
     SRC_ASIGNADO_DISTINTO = "src_asignado_distinto"
     SIN_SRC = "sin_src"
     TEMPORAL_SIN_SRC = "temporal_sin_src"
+    SRC_DEFINIDO_EN_QGIS = "src_definido_en_qgis"  # D-69
     CAMPO_FID_TIPO = "campo_fid_tipo"
     CAMPO_FID_REPETIDO = "campo_fid_repetido"
     CAMPOS_REPETIDOS = "campos_repetidos"
@@ -64,7 +65,6 @@ class MotivoAtencion(str, Enum):
     # Advertencias: seleccionable, nunca preseleccionada.
     SRC_DIFERENTE = "src_diferente"
     PROYECTO_SIN_SRC = "proyecto_sin_src"
-    SRC_DEFINIDO_EN_QGIS = "src_definido_en_qgis"
     FILTRO = "filtro"
     FILTRO_GEOMETRIA = "filtro_geometria"
     CAMPOS_CALCULADOS = "campos_calculados"
@@ -77,6 +77,7 @@ MOTIVOS_NO_INCORPORABLE = frozenset(
         MotivoAtencion.YA_ADMINISTRADA, MotivoAtencion.RECURSO_EN_LINEA, MotivoAtencion.BASE_EXTERNA,
         MotivoAtencion.VIRTUAL, MotivoAtencion.DESCONOCIDA, MotivoAtencion.NO_DISPONIBLE,
         MotivoAtencion.SRC_ASIGNADO_DISTINTO, MotivoAtencion.SIN_SRC, MotivoAtencion.TEMPORAL_SIN_SRC,
+        MotivoAtencion.SRC_DEFINIDO_EN_QGIS,
         MotivoAtencion.CAMPO_FID_TIPO, MotivoAtencion.CAMPO_FID_REPETIDO, MotivoAtencion.CAMPOS_REPETIDOS,
         MotivoAtencion.CAMPO_GEOM, MotivoAtencion.GEOMETRIAS_MEZCLADAS,
     }
@@ -354,8 +355,8 @@ TEXTO_MOTIVO = {
         "El proyecto no tiene SRC, así que no se puede comparar con el de la capa."
     ),
     MotivoAtencion.SRC_DEFINIDO_EN_QGIS: (
-        "El archivo original no declara un SRC; el SRC de la capa se definió en QGIS. Comprueba que "
-        "sea el correcto antes de seleccionarla."
+        "El archivo original no declara un sistema de coordenadas. Define correctamente su SRC y vuelve "
+        "a revisar antes de incorporarlo."
     ),
     MotivoAtencion.FILTRO: (
         "La capa tiene un filtro y muestra solo una parte de los datos del archivo. Requiere atención "
@@ -422,15 +423,15 @@ def motivos_de_capa(
     if capa.es_espacial:
         if not capa.src.valido:
             motivos.append(MotivoAtencion.TEMPORAL_SIN_SRC if temporal else MotivoAtencion.SIN_SRC)
+        elif not datos.src_fuente_valido:
+            # D-69: un SRC asignado solo en QGIS no se convierte en el SRC guardado en Proyecto.gpkg.
+            motivos.append(MotivoAtencion.SRC_DEFINIDO_EN_QGIS)
         elif capa.src_fuente_distinto is not None:
             motivos.append(MotivoAtencion.SRC_ASIGNADO_DISTINTO)
-        else:
-            if capa.estado_src == EstadoSrc.DIFERENTE:
-                motivos.append(MotivoAtencion.SRC_DIFERENTE)
-            elif capa.estado_src == EstadoSrc.PROYECTO_SIN_SRC:
-                motivos.append(MotivoAtencion.PROYECTO_SIN_SRC)
-            if not datos.src_fuente_valido:
-                motivos.append(MotivoAtencion.SRC_DEFINIDO_EN_QGIS)
+        elif capa.estado_src == EstadoSrc.DIFERENTE:
+            motivos.append(MotivoAtencion.SRC_DIFERENTE)
+        elif capa.estado_src == EstadoSrc.PROYECTO_SIN_SRC:
+            motivos.append(MotivoAtencion.PROYECTO_SIN_SRC)
     if datos.estado_fid == FID_TIPO_INCOMPATIBLE:
         motivos.append(MotivoAtencion.CAMPO_FID_TIPO)
     elif datos.estado_fid == FID_REPETIDO:
@@ -698,8 +699,6 @@ def texto_resumen_plan(plan: PlanIncorporacion) -> str:
          "{} elementos muestran un solo tipo de geometría y requieren atención."),
         (MotivoAtencion.CAMPOS_CALCULADOS, "Un elemento tiene campos calculados que se guardarán como valores.",
          "{} elementos tienen campos calculados que se guardarán como valores."),
-        (MotivoAtencion.SRC_DEFINIDO_EN_QGIS, "Un elemento tiene un SRC definido solo en QGIS.",
-         "{} elementos tienen un SRC definido solo en QGIS."),
         (MotivoAtencion.PROYECTO_SIN_SRC, "El proyecto no tiene SRC para comparar.",
          "El proyecto no tiene SRC para comparar."),
     ):

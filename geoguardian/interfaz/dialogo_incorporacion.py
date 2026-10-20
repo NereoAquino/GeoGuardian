@@ -56,6 +56,7 @@ BOTON_PREPARAR = "Preparar incorporación"
 BOTON_VOLVER_LISTA = "← Volver a la lista"
 TITULO_PLAN = "Plan de incorporación"
 SIN_PLAN = "No se pudo preparar el plan de incorporación. Revisa el registro de mensajes de QGIS."
+AYUDA_PLAN_OBSOLETO = "Pulsa «Volver a revisar» antes de preparar la incorporación."
 ROL_CLAVE = Qt.UserRole + 1
 ANCHO_MAXIMO_COLUMNA = 280  # px; el texto completo queda en la ayuda emergente
 
@@ -81,6 +82,8 @@ class DialogoRevisarCapasConPlan(DialogoRevisarCapas):
         self._preparar_plan = preparar_plan
         self.plan: Optional[PlanIncorporacion] = None  # con la seleccion actual del estudiante
         self.plan_preparado: Optional[PlanIncorporacion] = None
+        # D-70: verdadero cuando la revalidacion encontro cambios. Solo "Volver a revisar" lo limpia.
+        self.plan_obsoleto = False
         self.motivo_sin_plan = ""
         self._llenando = False
 
@@ -178,6 +181,8 @@ class DialogoRevisarCapasConPlan(DialogoRevisarCapas):
     def revisar(self, *_args):
         self.volver_a_la_lista()
         self.aviso_plan.setVisible(False)
+        self.plan_obsoleto = False
+        self.plan_preparado = None
         return super().revisar()
 
     def mostrar(self, inventario: Optional[Inventario]) -> None:
@@ -239,7 +244,8 @@ class DialogoRevisarCapasConPlan(DialogoRevisarCapas):
             return
         self.plan = con_seleccion(self.plan, claves)
         self._sincronizar_casillas()
-        self.aviso_plan.setVisible(False)
+        if not self.plan_obsoleto:
+            self.aviso_plan.setVisible(False)
         self._actualizar_pie()
 
     def _sincronizar_casillas(self) -> None:
@@ -260,29 +266,39 @@ class DialogoRevisarCapasConPlan(DialogoRevisarCapas):
         else:
             self.conteo.setText(texto_conteo(self.plan))
         self.conteo.setVisible(bool(self.conteo.text()))
-        self.boton_preparar.setEnabled(bool(self.plan and self.plan.seleccionadas))
+        self.boton_preparar.setEnabled(self.puede_preparar())
+        self.boton_preparar.setToolTip(AYUDA_PLAN_OBSOLETO if self.plan_obsoleto else "")
+
+    def puede_preparar(self) -> bool:
+        return bool(self.plan and self.plan.seleccionadas and not self.plan_obsoleto)
 
     # --- plan -----------------------------------------------------------------------------
 
     def preparar(self, *_args) -> Optional[PlanIncorporacion]:
         """Revalida contra el estado actual y, si nada cambio, muestra el plan. No escribe nada."""
-        if self.plan is None or not self.plan.seleccionadas:
+        if not self.puede_preparar():
             return None
         resultado = self._preparar_plan(self.plan)
         if resultado is None:
-            self._mostrar_aviso(SIN_PLAN)
+            self._invalidar_plan(SIN_PLAN)
             return None
         if not resultado.vigente or resultado.plan_actual is None:
-            self._mostrar_aviso(texto_aviso_cambios(resultado))
+            self._invalidar_plan(texto_aviso_cambios(resultado))
             return None
         self.plan_preparado = resultado.plan_actual
         self._mostrar_plan(self.plan_preparado)
         self.pila.setCurrentIndex(1)
         return self.plan_preparado
 
-    def _mostrar_aviso(self, texto: str) -> None:
+    def _invalidar_plan(self, texto: str) -> None:
+        """D-70: el plan queda obsoleto hasta "Volver a revisar"; ya no se puede preparar ni mostrar."""
+        self.plan_obsoleto = True
+        self.plan_preparado = None
+        self.tabla_plan.setRowCount(0)
+        self.resumen_plan.clear()
         self.aviso_plan.setText(texto)
         self.aviso_plan.setVisible(True)
+        self._actualizar_pie()
 
     def _mostrar_plan(self, plan: PlanIncorporacion) -> None:
         self.resumen_plan.setText(texto_resumen_plan(plan))

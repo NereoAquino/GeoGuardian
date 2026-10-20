@@ -195,7 +195,7 @@ class PruebaSrc(BasePlan):
     def prueba_src_definido_solo_en_qgis(self):
         unidad = self.unidad([self.externo("c")], datos={"c": self.datos("c", src_fuente_valido=False)})
         self.assertEqual(unidad.motivos, (M.SRC_DEFINIDO_EN_QGIS,))
-        self.assertEqual(unidad.seleccion, Se.SELECCIONABLE)
+        self.assertEqual(unidad.seleccion, Se.NO_SELECCIONABLE)  # D-69 sustituye la advertencia original
 
     def prueba_tabla_sin_geometria_no_evalua_src(self):
         unidad = self.unidad([self.externo("c", "t.csv", es_espacial=False, src=SIN, src_fuente=SIN)],

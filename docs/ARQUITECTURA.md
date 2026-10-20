@@ -508,6 +508,11 @@ pulsar "Preparar incorporación", `ServicioPlan.revalidar` reconstruye inventari
 selección del estudiante y `revalidar()` decide si el plan sigue vigente (D-64). Ninguna señal se
 conecta.
 
+**Estado "plan obsoleto" (D-70).** El diálogo tiene un indicador `plan_obsoleto`. Si la revalidación
+falla, `_invalidar_plan` lo activa, descarta `plan_preparado` y vacía la vista previa;
+`puede_preparar()` devuelve falso y "Preparar incorporación" queda deshabilitado aunque cambien las
+casillas. Solo `revisar()` ("Volver a revisar") lo limpia antes de reconstruir inventario y plan.
+
 **Solo lectura (D-68).** Ningún módulo nuevo escribe. Una prueba recorre el árbol sintáctico de los
 módulos nuevos: no importan `persistencia`, `manifiesto`, `eventos` ni `administracion`; `sqlite3`
 solo aparece en `lector_geopaquete.py`, cuyas consultas son `SELECT` y abren con `?mode=ro`. La
