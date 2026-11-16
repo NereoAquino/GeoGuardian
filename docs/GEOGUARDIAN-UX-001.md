@@ -93,7 +93,7 @@ La futura mejora de comunicación **no deberá alterar**:
 - La naturaleza **exclusivamente informativa y en memoria** del plan (D-65 y D-68).
 - La conservación de archivos originales y la ausencia de copia, reproyección, movimiento, reenlace o modificaciones en el Hito 2.
 
-La modificación de etiquetas documentadas en D-65 requerirá **formalizar el ajuste de esa decisión** antes de la implementación. No se altera retroactivamente el registro vigente.
+El ajuste conceptual de las etiquetas documentadas en D-65 quedó formalizado como **D-71 — Aprobada conceptualmente; implementación pendiente** en [DECISIONES.md](DECISIONES.md). El registro histórico de D-65 permanece intacto. D-71 **no autoriza** ejecutar cambios de código.
 
 ## 5. Criterios de aceptación futuros
 
