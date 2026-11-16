@@ -42,7 +42,7 @@ class PruebaD69EnQgis(BasePlanQgis):
         unidad = self.unidad(self.construir(), capa)
         self.assertEqual(unidad.motivo_principal, M.SRC_DEFINIDO_EN_QGIS)
         self.assertEqual((unidad.elegibilidad, unidad.seleccion), (El.NO_INCORPORABLE, Se.NO_SELECCIONABLE))
-        self.assertEqual(texto_estado(unidad), "Necesita atención: SRC definido solo en QGIS")
+        self.assertEqual(texto_estado(unidad), "Necesita atención: el archivo no declara SRC")
         self.assertEqual(capa.crs().authid(), "EPSG:32615")  # GeoGuardian no corrige nada
 
     def prueba_fuente_sin_src_y_capa_sin_src(self):
@@ -108,7 +108,7 @@ class PruebaDialogoAjustes(BaseIntegracion):
         self.rios()
         dialogo = self.abrir()
         celda, texto = self.fila(dialogo, "parcelas")
-        self.assertEqual(texto, "Necesita atención: SRC definido solo en QGIS")
+        self.assertEqual(texto, "Necesita atención: el archivo no declara SRC")
         self.assertEqual(celda.checkState(), Qt.Unchecked)
         self.assertFalse(celda.flags() & Qt.ItemIsEnabled)
         self.assertFalse(celda.flags() & Qt.ItemIsUserCheckable)
