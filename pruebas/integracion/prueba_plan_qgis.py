@@ -203,7 +203,7 @@ class PruebaUnidadesEnQgis(BasePlanQgis):
             unidad = self.unidad(plan, capa)
             self.assertEqual(unidad.tipo_temporal, tipo)
             self.assertEqual(unidad.seleccion, Se.PRESELECCIONADA)
-            self.assertEqual(texto_estado(unidad), "Capa temporal: se recomienda incorporar")
+            self.assertEqual(texto_estado(unidad), "Capa temporal: se recomienda organizar")
             self.assertEqual(unidad.nombre_destino, capa.name())
         self.assertGreater(self.unidad(plan, memoria).huella.capas[0].num_entidades, 0)
 
@@ -563,27 +563,27 @@ class PruebaDialogoConPlan(BaseIntegracion):
         self.assertEqual(dialogo.tabla.horizontalHeaderItem(INDICE_INCORPORAR).text(), COLUMNA_INCORPORAR)
         self.assertEqual(dialogo.boton_preparar.text(), BOTON_PREPARAR)
         filas = self.filas(dialogo)
-        self.assertEqual(filas["rios"][1], "Se puede incorporar")
-        self.assertEqual(filas["campo"][1], "Capa temporal: se recomienda incorporar")
+        self.assertEqual(filas["rios"][1], "Se puede organizar")
+        self.assertEqual(filas["campo"][1], "Capa temporal: se recomienda organizar")
         self.assertEqual(filas["municipios"][1], "SRC diferente al proyecto")
         self.assertEqual(filas["sitios"][1], "Ya está en el proyecto")
         marcadas = {n for n, (c, _t) in filas.items() if c.checkState() == Qt.Checked}
         self.assertEqual(marcadas, {"rios", "rios (copia)", "campo"})
         self.assertFalse(filas["sitios"][0].flags() & Qt.ItemIsEnabled)
         self.assertTrue(filas["municipios"][0].flags() & Qt.ItemIsUserCheckable)
-        self.assertEqual(dialogo.conteo.text(), "2 elementos por incorporar (3 capas relacionadas)")
+        self.assertEqual(dialogo.conteo.text(), "2 elementos en el plan (3 capas relacionadas)")
         # Seleccion enlazada: desmarcar una capa desmarca la otra de la misma unidad.
         filas["rios (copia)"][0].setCheckState(Qt.Unchecked)
         self.assertEqual(filas["rios"][0].checkState(), Qt.Unchecked)
         filas["municipios"][0].setCheckState(Qt.Checked)
         self.assertEqual(dialogo.conteo.text(),
-                         "2 elementos por incorporar (2 capas relacionadas) · 1 advertencia pendiente")
+                         "2 elementos en el plan (2 capas relacionadas) · 1 advertencia pendiente")
         # Vista previa en la segunda pagina, sin boton para incorporar.
         dialogo.boton_preparar.click()
         self.assertEqual(dialogo.pila.currentIndex(), 1)
         self.assertIn(AVISO_PLAN, {w.text() for w in dialogo.findChildren(type(dialogo.conteo))})
-        self.assertIn("Se incorporarán 2 elementos en Proyecto.gpkg.", dialogo.resumen_plan.text())
-        self.assertIn("Una capa temporal quedará guardada permanentemente.", dialogo.resumen_plan.text())
+        self.assertIn("El plan propone organizar 2 elementos en Proyecto.gpkg.", dialogo.resumen_plan.text())
+        self.assertIn("Una capa temporal podría conservarse si en el futuro se ejecuta la organización.", dialogo.resumen_plan.text())
         self.assertIn("Un elemento tiene un SRC diferente al proyecto.", dialogo.resumen_plan.text())
         self.assertEqual(dialogo.tabla_plan.rowCount(), 2)
         destinos = {dialogo.tabla_plan.item(f, 2).text() for f in range(2)}
