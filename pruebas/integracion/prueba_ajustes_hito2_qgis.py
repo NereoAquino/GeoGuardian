@@ -109,6 +109,17 @@ class PruebaDialogoAjustes(BaseIntegracion):
         dialogo = self.abrir()
         celda, texto = self.fila(dialogo, "parcelas")
         self.assertEqual(texto, "Necesita atención: el archivo no declara SRC")
+        # UX-02: el SRC visible debe distinguir la asignación de QGIS del archivo original.
+        fila_parcelas = next(
+            fila for fila in range(dialogo.tabla.rowCount())
+            if dialogo.tabla.item(fila, 0).text() == "parcelas"
+        )
+        src_visible = dialogo.tabla.item(fila_parcelas, 3)
+        self.assertIn("archivo sin SRC", src_visible.text())
+        self.assertIn("SRC asignado en QGIS: EPSG:32615", src_visible.toolTip())
+        self.assertIn("SRC declarado por el archivo: no definido", src_visible.toolTip())
+        self.assertIn("¿Por qué aparece esta advertencia?", src_visible.toolTip())
+        self.assertFalse(dialogo.ayuda_src.isHidden())
         self.assertEqual(celda.checkState(), Qt.Unchecked)
         self.assertFalse(celda.flags() & Qt.ItemIsEnabled)
         self.assertFalse(celda.flags() & Qt.ItemIsUserCheckable)
