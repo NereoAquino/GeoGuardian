@@ -31,7 +31,7 @@ en QGIS Windows (`docs/validacion_hito1_windows.md`).
 - Ajustes D-69 y D-70: una capa cuyo archivo no declara SRC ya no se puede incorporar aunque se le
   haya asignado un SRC en QGIS; si al preparar el plan algo cambió, **Preparar incorporación** queda
   deshabilitado hasta pulsar **Volver a revisar**.
-- Hito 2 aprobado técnicamente; pendiente de validación manual en Windows.
+- Hito 2 aprobado técnicamente. **Validación manual en Windows ejecutada el 2026-11-15** como NORTE-PILOTO-001: cierre con observaciones, CA-01 a CA-04 aprobados, CA-05 aprobado en el escenario verificado, **CA-06 no aprobado** por falta de claridad para el estudiante. Véase [registro del piloto](docs/validacion_hito2_windows_norte.md); no autoriza cambios de código ni nueva versión.
 
 ## 0.1.0 (2026-10-19)
 
