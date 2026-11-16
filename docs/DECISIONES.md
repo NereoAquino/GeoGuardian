@@ -1101,20 +1101,12 @@ adaptó al enfoque de **«organizar» / «consultar un plan»** quedan
 **registrados como redacciones operativas vigentes de esta rama**,
 conservando las decisiones históricas. Incluyen:
 
-- **D-65, resumen y conteos:** «Ningún elemento seleccionado para el
-  plan de organización.», «1 elemento en el plan», «1 capa relacionada»,
-  «El plan propone organizar 1 elemento en Proyecto.gpkg.» y
-  «Una capa temporal podría conservarse si en el futuro se ejecuta
-  la organización.»; también sus variantes plurales y los contadores
-  de advertencias.
-- **Ayudas del estado y origen:** «El plan puede proponer organizarla
-  en Proyecto.gpkg.», «Se propone organizar junto con: {}.» y
-  «La organización propuesta conservaría los archivos originales.»
+- **D-65, resumen y conteos:** `Ningún elemento seleccionado para el plan de organización.`, `1 elemento en el plan`, `1 capa relacionada`, `El plan propone organizar 1 elemento en Proyecto.gpkg.` y `Una capa temporal podría conservarse si en el futuro se ejecuta la organización.`; también sus variantes plurales y los contadores de advertencias.
+- **Ayudas del estado y origen:** `El plan puede proponer organizarla en Proyecto.gpkg.`, `Se propone organizar junto con: {}.` y `La organización propuesta conservaría los archivos originales.`
 - **Filtros, geometrías y modo edición:** las ayudas ahora indican
   «antes de incluirla en el plan» cuando corresponde; siguen vigentes
   los mismos bloqueos y advertencias de D-60, D-61 y D-65.
-- **Plan no disponible:** «No se pudo mostrar el plan de organización.
-  Revisa el registro de mensajes de QGIS.»
+- **Plan no disponible:** `No se pudo mostrar el plan de organización. Revisa el registro de mensajes de QGIS.`
 - **Incorporación futura:** las referencias a conversiones, guardados
   y conservación de temporales se formulan de forma condicional,
   sin presentar la vista previa como una acción ejecutada.
