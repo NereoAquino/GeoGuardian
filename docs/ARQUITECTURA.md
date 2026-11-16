@@ -535,10 +535,13 @@ conteos de `gg_eventos` y `gg_recursos`; fuentes, filtros, SRC, edición e indic
 
 **Alcance y estado.** Esta sección actualiza la presentación de la sección 15, que
 conserva la descripción histórica del Hito 2 de octubre de 2026.
-Las redacciones actuales fueron **aprobadas por el responsable humano (D-72)**;
-la implementación está en la rama `feat/ux01-ux02-comunicacion`, PR #1
-**en borrador**. La aprobación de textos no representa aprobación de comprensión
-estudiantil ni autorización de publicación o fusión.
+Las redacciones literales de **D-59, D-61, D-65, D-69 y D-70** fueron
+aprobadas expresamente por el responsable humano y registradas en D-72.
+Los demás mensajes UX-01/UX-02 son **redacciones operativas implementadas y
+auditadas**, sin aprobación humana literal individual. La implementación
+está en la rama `feat/ux01-ux02-comunicacion`, PR #1 **en borrador**.
+La aprobación de textos no representa aprobación de comprensión estudiantil
+ni autorización de publicación o fusión.
 
 ### Interfaz del plan (UX-01)
 
@@ -613,9 +616,11 @@ CA-05 sobre la nueva interfaz y comportamiento del fallo anterior
 en la versión objetivo. El PR no debe integrarse ni publicarse hasta
 satisfacer los criterios de aceptación correspondientes.
 
-La aprobación literal de los mensajes se encuentra en
-[D-72](DECISIONES.md); la especificación [GEOGUARDIAN-UX-001](GEOGUARDIAN-UX-001.md)
-mantiene el antecedente conceptual y el registro de
-[NORTE-PILOTO-001](validacion_hito2_windows_norte.md) conserva
-el resultado histórico de la prueba con estudiantes.
+La aprobación literal de las redacciones de **D-59, D-61, D-65, D-69 y
+D-70**, junto con el registro de los **demás textos operativos vigentes**
+(sin aprobación humana literal individual), se documenta en
+[D-72](DECISIONES.md). La especificación
+[GEOGUARDIAN-UX-001](GEOGUARDIAN-UX-001.md) mantiene el antecedente
+conceptual y el registro de [NORTE-PILOTO-001](validacion_hito2_windows_norte.md)
+conserva el resultado histórico de la prueba con estudiantes.
 
