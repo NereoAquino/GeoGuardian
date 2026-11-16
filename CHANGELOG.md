@@ -33,6 +33,28 @@ en QGIS Windows (`docs/validacion_hito1_windows.md`).
   deshabilitado hasta pulsar **Volver a revisar**.
 - Hito 2 aprobado técnicamente. **Validación manual en Windows ejecutada el 2026-11-15** como NORTE-PILOTO-001: cierre con observaciones, CA-01 a CA-04 aprobados, CA-05 aprobado en el escenario verificado, **CA-06 no aprobado** por falta de claridad para el estudiante. Véase [registro del piloto](docs/validacion_hito2_windows_norte.md); no autoriza cambios de código ni nueva versión.
 
+
+**Ajuste UX-01/UX-02 documentado y aprobado en redacción** (2026-11-15; D-71 y D-72; PR #1 todavía en borrador).
+
+- Los textos actuales del Hito 2 se presentan como **Organizar**, **Se puede organizar**,
+  **Ver plan de organización** y **Plan de organización de capas**. El contador indica
+  elementos **en el plan** y evita dar por hecha una incorporación.
+- La introducción explica que una organización futura podría reunir copias de capas
+  vectoriales compatibles en `Proyecto.gpkg` (GeoPackage), conservaría los archivos
+  originales y **todavía no modifica ni copia nada**. El aviso de la vista previa lo reafirma.
+- Las ayudas distinguen SRC de QGIS y SRC declarado por el archivo; el bloqueo sigue siendo
+  por unidad, pero la advertencia visible describe el problema de la **capa individual**.
+  F-1, F-2, R-1 y R-2 quedaron cerrados en auditorías independientes. Las redacciones literales
+  de D-59, D-61, D-65, D-69 y D-70 fueron aprobadas por el responsable humano (D-72).
+- **Pruebas de la cabeza `25b22ab` en Linux, QGIS 3.44.15:** 246 unitarias OK
+  (una omitida) y 112 de integración con un único fallo **preexistente en la base**,
+  `prueba_guardar_ahora_no_confirma_ediciones`; sin fallos nuevos atribuibles al PR.
+- **Pendientes:** observación informativa R-3 (mensaje incompleto con edición y problema de SRC
+  en otra capa), CA-06 **NO APROBADO**, pruebas manuales de UX y regresión en Windows/QGIS 3.28,
+  y comprobación del fallo preexistente en ese entorno. **No hay nueva versión publicada,
+  ZIP autorizado ni fusión a `main`.** Las líneas anteriores describen la situación
+  histórica del Hito 2 antes de D-72; no implican que ya se haya realizado la organización.
+
 ## 0.1.0 (2026-10-19)
 
 Primera versión estable de GeoGuardian. Deriva de 0.1.0-rc2, validada con las pruebas

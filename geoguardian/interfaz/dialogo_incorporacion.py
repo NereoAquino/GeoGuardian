@@ -33,6 +33,8 @@ from ..dominio.plan_incorporacion import (
     AVISO_PLAN,
     TEXTO_NO_VECTORIAL,
     TEXTO_SIN_PLAN,
+    TEXTO_MOTIVO,
+    MotivoAtencion,
     PlanIncorporacion,
     ResultadoPlan,
     ayuda_estado,
@@ -49,14 +51,25 @@ from ..dominio.plan_incorporacion import (
 from ..dominio.revalidacion import TEXTO_CAMBIO, ResultadoRevalidacion
 from .dialogo_revisar_capas import COLUMNAS, DialogoRevisarCapas
 
-COLUMNA_INCORPORAR = "Incorporar"
+COLUMNA_INCORPORAR = "Organizar"
 INDICE_INCORPORAR = len(COLUMNAS)
 COLUMNAS_PLAN = ("Elemento", "Origen", "Destino propuesto", "Capas relacionadas", "Advertencias")
-BOTON_PREPARAR = "Preparar incorporación"
+BOTON_PREPARAR = "Ver plan de organización"
 BOTON_VOLVER_LISTA = "← Volver a la lista"
-TITULO_PLAN = "Plan de incorporación"
-SIN_PLAN = "No se pudo preparar el plan de incorporación. Revisa el registro de mensajes de QGIS."
-AYUDA_PLAN_OBSOLETO = "Pulsa «Volver a revisar» antes de preparar la incorporación."
+TITULO_PLAN = "Plan de organización de capas"
+SIN_PLAN = "No se pudo mostrar el plan de organización. Revisa el registro de mensajes de QGIS."
+AYUDA_PLAN_OBSOLETO = "Pulsa «Volver a revisar» antes de consultar un plan actualizado."
+TEXTO_INTRO_ORGANIZACION = (
+    "GeoGuardian puede proponerte reunir copias de capas vectoriales compatibles en un archivo "
+    "de datos geográficos GeoPackage (Proyecto.gpkg) para facilitar su conservación y transporte. "
+    "Los archivos originales se conservarían. Por ahora solo verás un plan: "
+    "no se copiará ni modificará ningún archivo."
+)
+AYUDA_ADVERTENCIA_SRC = (
+    "¿Por qué aparece esta advertencia? El sistema de referencia de coordenadas (SRC) indica "
+    "cómo interpretar la ubicación de los datos. Sitúa el cursor sobre la columna «SRC» "
+    "o «Organizar» de la capa afectada para conocer el problema y qué revisar."
+)
 ROL_CLAVE = Qt.UserRole + 1
 ANCHO_MAXIMO_COLUMNA = 280  # px; el texto completo queda en la ayuda emergente
 
@@ -87,9 +100,23 @@ class DialogoRevisarCapasConPlan(DialogoRevisarCapas):
         self.motivo_sin_plan = ""
         self._llenando = False
 
+        self.intro_organizacion = QLabel(TEXTO_INTRO_ORGANIZACION)
+        self.intro_organizacion.setTextFormat(Qt.PlainText)
+        self.intro_organizacion.setWordWrap(True)
+        self.intro_organizacion.setStyleSheet("color: #35556d;")
+        self.ayuda_src = QLabel(AYUDA_ADVERTENCIA_SRC)
+        self.ayuda_src.setTextFormat(Qt.PlainText)
+        self.ayuda_src.setWordWrap(True)
+        self.ayuda_src.setStyleSheet("color: #8a5a00;")
+        self.ayuda_src.setVisible(False)
+
         self.tabla.setColumnCount(len(COLUMNAS) + 1)
         self.tabla.setHorizontalHeaderLabels(COLUMNAS + (COLUMNA_INCORPORAR,))
-        # Solo cambia el orden visual: "Incorporar" junto a "Capa", sin mover las columnas del Hito 1.
+        self.tabla.horizontalHeaderItem(3).setToolTip(
+            "Sistema de referencia de coordenadas (SRC): indica cómo interpretar la ubicación "
+            "de los datos. QGIS puede tener un SRC asignado distinto del declarado por el archivo."
+        )
+        # Solo cambia el orden visual: "Organizar" junto a "Capa", sin mover las columnas del Hito 1.
         self.tabla.horizontalHeader().moveSection(INDICE_INCORPORAR, 1)
         self.tabla.itemChanged.connect(self._al_cambiar_celda)
 
@@ -127,6 +154,10 @@ class DialogoRevisarCapasConPlan(DialogoRevisarCapas):
         for elemento, estiramiento in elementos:
             if elemento.widget() is not None:
                 lista.addWidget(elemento.widget(), estiramiento)
+                if elemento.widget() is self.encabezado:
+                    lista.addWidget(self.intro_organizacion)
+                elif elemento.widget() is self.tabla:
+                    lista.addWidget(self.ayuda_src)
             elif elemento.layout() is not None:
                 # Fila de botones del Hito 1: se rehace con los mismos botones y el nuevo.
                 anterior = elemento.layout()
@@ -203,6 +234,12 @@ class DialogoRevisarCapasConPlan(DialogoRevisarCapas):
         finally:
             self._llenando = False
         self.tabla.resizeColumnsToContents()
+        self.intro_organizacion.setVisible(inventario is not None)
+        self.ayuda_src.setVisible(bool(self.plan and any(
+            MotivoAtencion.SRC_DEFINIDO_EN_QGIS in unidad.motivos
+            or MotivoAtencion.SRC_ASIGNADO_DISTINTO in unidad.motivos
+            for unidad in self.plan.unidades
+        )))
         self._actualizar_pie()
 
     def _decorar_fila(self, fila: int, capa: CapaInventariada) -> None:
@@ -213,11 +250,102 @@ class DialogoRevisarCapasConPlan(DialogoRevisarCapas):
             texto, ayuda = TEXTO_SIN_PLAN, self.motivo_sin_plan or TEXTO_SIN_PLAN
         else:
             texto, ayuda = texto_estado(unidad), ayuda_estado(unidad)
+        # La elegibilidad es por unidad (fuente compartida); la explicación visible
+        # de SRC debe corresponder a la capa individual y no atribuirle el
+        # problema de otra capa de la misma fuente.
+        huella_capa = (
+            next((h for h in unidad.huella.capas if h.id_capa == capa.id_capa), None)
+            if unidad is not None else None
+        )
+        src_solo_qgis = bool(
+            unidad is not None and capa.es_espacial and capa.src.valido
+            and huella_capa is not None and not huella_capa.src_fuente
+            and MotivoAtencion.SRC_DEFINIDO_EN_QGIS in unidad.motivos
+        )
+        src_distinto_archivo = bool(
+            unidad is not None and capa.es_espacial and capa.src_fuente_distinto is not None
+            and MotivoAtencion.SRC_ASIGNADO_DISTINTO in unidad.motivos
+        )
+        origen_compartido_con_problema_src = bool(
+            unidad is not None and len(unidad.ids_capas) > 1 and any(
+                motivo in unidad.motivos for motivo in (
+                    MotivoAtencion.SIN_SRC,
+                    MotivoAtencion.TEMPORAL_SIN_SRC,
+                    MotivoAtencion.SRC_DEFINIDO_EN_QGIS,
+                    MotivoAtencion.SRC_ASIGNADO_DISTINTO,
+                )
+            )
+        )
+        # UX-02 / R-2: la unidad se bloquea en conjunto, pero el estado y la
+        # ayuda de cada fila describen únicamente el SRC de esa capa. No se
+        # atribuye a una capa el motivo individual de otra capa de la fuente.
+        if origen_compartido_con_problema_src:
+            aviso_conjunto = (
+                "Esta fuente tiene problemas de SRC pendientes. "
+                "Sus capas no pueden organizarse todavía."
+            )
+            if capa.es_espacial and not capa.src.valido:
+                texto = "Necesita atención: esta capa no tiene SRC asignado"
+                ayuda = (
+                    "Esta capa no tiene un SRC asignado. Revisa también el SRC del "
+                    "archivo original. " + aviso_conjunto +
+                    " Corrige la situación y pulsa «Volver a revisar»."
+                )
+            elif src_solo_qgis:
+                texto = "Necesita atención: SRC en QGIS, archivo sin SRC"
+                ayuda = (
+                    "Esta capa tiene un SRC asignado en QGIS, pero el archivo original "
+                    "no declara un SRC válido. " + aviso_conjunto +
+                    " Comprueba el SRC del archivo y pulsa «Volver a revisar»."
+                )
+            elif src_distinto_archivo:
+                texto = "Necesita atención: los SRC del archivo y QGIS no coinciden"
+                ayuda = (
+                    TEXTO_MOTIVO[MotivoAtencion.SRC_ASIGNADO_DISTINTO] +
+                    " " + aviso_conjunto
+                )
+            else:
+                texto = "Necesita atención: otra capa de esta fuente tiene un problema de SRC"
+                ayuda = (
+                    "Esta capa no presenta el problema de SRC detectado en otra capa "
+                    "de la misma fuente. " + aviso_conjunto +
+                    " Corrige la otra capa y pulsa «Volver a revisar»."
+                )
         celda = QTableWidgetItem(texto)
         celda.setToolTip(ayuda)
         self.tabla.setItem(fila, INDICE_INCORPORAR, celda)
         if unidad is None:
             return
+        # UX-02: en el diálogo del Hito 2 se distingue SRC de QGIS y SRC de la fuente,
+        # conservando los textos y columnas originales del inventario del Hito 1.
+        celda_src = self.tabla.item(fila, 3)
+        if celda_src is not None:
+            src_qgis = capa.src.identificador or capa.src.descripcion or "no identificado"
+            if src_solo_qgis:
+                celda_src.setText("{} (QGIS) · archivo sin SRC".format(src_qgis))
+                celda_src.setToolTip(
+                    (
+                        "¿Por qué aparece esta advertencia?\n"
+                        "SRC asignado en QGIS: {}.\n"
+                        "SRC declarado por el archivo: no definido.\n"
+                        "El archivo no guarda ese SRC; comprueba cuál corresponde a sus datos, "
+                        "defínelo correctamente en la fuente y pulsa «Volver a revisar». "
+                        "La capa no puede organizarse mientras falte el SRC del archivo."
+                    ).format(src_qgis)
+                )
+            elif src_distinto_archivo:
+                src_archivo = (capa.src_fuente_distinto.texto()
+                               if capa.src_fuente_distinto is not None else "no disponible")
+                celda_src.setText("{} (QGIS) · distinto del archivo".format(src_qgis))
+                celda_src.setToolTip(
+                    (
+                        "¿Por qué aparece esta advertencia?\n"
+                        "SRC asignado en QGIS: {}.\n"
+                        "SRC declarado por el archivo: {}.\n"
+                        "No coinciden: comprueba cuál corresponde a los datos, corrige "
+                        "la diferencia y pulsa «Volver a revisar». La capa sigue bloqueada."
+                    ).format(src_qgis, src_archivo)
+                )
         celda_capa = self.tabla.item(fila, 0)
         celda_capa.setData(ROL_CLAVE, unidad.clave_unidad)
         marcada = unidad.clave_unidad in self.plan.seleccionadas
@@ -225,7 +353,7 @@ class DialogoRevisarCapasConPlan(DialogoRevisarCapas):
         if unidad.seleccionable:
             celda_capa.setFlags(celda_capa.flags() | Qt.ItemIsUserCheckable | Qt.ItemIsEnabled)
         else:
-            # Casilla visible pero inactiva: el motivo esta en la columna "Incorporar".
+            # Casilla visible pero inactiva: el motivo esta en la columna "Organizar".
             celda_capa.setFlags(celda_capa.flags() & ~Qt.ItemIsUserCheckable & ~Qt.ItemIsEnabled)
         celda_capa.setToolTip(ayuda)
 
@@ -267,7 +395,10 @@ class DialogoRevisarCapasConPlan(DialogoRevisarCapas):
             self.conteo.setText(texto_conteo(self.plan))
         self.conteo.setVisible(bool(self.conteo.text()))
         self.boton_preparar.setEnabled(self.puede_preparar())
-        self.boton_preparar.setToolTip(AYUDA_PLAN_OBSOLETO if self.plan_obsoleto else "")
+        self.boton_preparar.setToolTip(
+            AYUDA_PLAN_OBSOLETO if self.plan_obsoleto
+            else "Muestra una propuesta de organización. No copia ni modifica archivos."
+        )
 
     def puede_preparar(self) -> bool:
         return bool(self.plan and self.plan.seleccionadas and not self.plan_obsoleto)

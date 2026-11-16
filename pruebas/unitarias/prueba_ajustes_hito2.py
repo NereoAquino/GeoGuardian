@@ -64,11 +64,12 @@ class PruebaD69(BasePlan):
 
     def prueba_textos(self):
         _plan, unidad = self.unidad_src(UTM, SIN, False)
-        self.assertEqual(texto_estado(unidad), "Necesita atención: SRC definido solo en QGIS")
+        self.assertEqual(texto_estado(unidad), "Necesita atención: el archivo no declara SRC")
         self.assertEqual(
             ayuda_estado(unidad),
-            "El archivo original no declara un sistema de coordenadas. Define correctamente su SRC y "
-            "vuelve a revisar antes de incorporarlo.",
+            "El archivo original no declara un SRC válido, aunque QGIS tenga uno asignado a la capa. "
+            "Verifica cuál corresponde a los datos y asegúrate de que quede definido en el archivo. "
+            "Después pulsa «Volver a revisar». La capa permanece bloqueada hasta entonces.",
         )
         for texto in (TEXTO_BREVE[M.SRC_DEFINIDO_EN_QGIS], TEXTO_MOTIVO[M.SRC_DEFINIDO_EN_QGIS]):
             self.assertNotIn("incorrect", texto.lower())

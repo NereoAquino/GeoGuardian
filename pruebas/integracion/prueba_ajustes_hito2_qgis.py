@@ -42,7 +42,7 @@ class PruebaD69EnQgis(BasePlanQgis):
         unidad = self.unidad(self.construir(), capa)
         self.assertEqual(unidad.motivo_principal, M.SRC_DEFINIDO_EN_QGIS)
         self.assertEqual((unidad.elegibilidad, unidad.seleccion), (El.NO_INCORPORABLE, Se.NO_SELECCIONABLE))
-        self.assertEqual(texto_estado(unidad), "Necesita atención: SRC definido solo en QGIS")
+        self.assertEqual(texto_estado(unidad), "Necesita atención: el archivo no declara SRC")
         self.assertEqual(capa.crs().authid(), "EPSG:32615")  # GeoGuardian no corrige nada
 
     def prueba_fuente_sin_src_y_capa_sin_src(self):
@@ -108,7 +108,18 @@ class PruebaDialogoAjustes(BaseIntegracion):
         self.rios()
         dialogo = self.abrir()
         celda, texto = self.fila(dialogo, "parcelas")
-        self.assertEqual(texto, "Necesita atención: SRC definido solo en QGIS")
+        self.assertEqual(texto, "Necesita atención: el archivo no declara SRC")
+        # UX-02: el SRC visible debe distinguir la asignación de QGIS del archivo original.
+        fila_parcelas = next(
+            fila for fila in range(dialogo.tabla.rowCount())
+            if dialogo.tabla.item(fila, 0).text() == "parcelas"
+        )
+        src_visible = dialogo.tabla.item(fila_parcelas, 3)
+        self.assertIn("archivo sin SRC", src_visible.text())
+        self.assertIn("SRC asignado en QGIS: EPSG:32615", src_visible.toolTip())
+        self.assertIn("SRC declarado por el archivo: no definido", src_visible.toolTip())
+        self.assertIn("¿Por qué aparece esta advertencia?", src_visible.toolTip())
+        self.assertFalse(dialogo.ayuda_src.isHidden())
         self.assertEqual(celda.checkState(), Qt.Unchecked)
         self.assertFalse(celda.flags() & Qt.ItemIsEnabled)
         self.assertFalse(celda.flags() & Qt.ItemIsUserCheckable)
@@ -122,6 +133,180 @@ class PruebaDialogoAjustes(BaseIntegracion):
         self.assertIsNotNone(dialogo.preparar())
         elementos = {dialogo.tabla_plan.item(f, 0).text() for f in range(dialogo.tabla_plan.rowCount())}
         self.assertEqual(elementos, {"rios"})
+
+    def prueba_ux02_src_qgis_distinto_del_archivo(self):
+        """La interfaz explica ambos SRC y mantiene el bloqueo de D-59."""
+        rios = self.rios()
+        rios.setCrs(QgsCoordinateReferenceSystem("EPSG:4326"))
+        self.assertEqual(rios.crs().authid(), "EPSG:4326")
+        self.assertEqual(rios.dataProvider().crs().authid(), "EPSG:32615")
+        dialogo = self.abrir()
+        celda, texto = self.fila(dialogo, "rios")
+        self.assertIn("no coinciden", texto)
+        fila = next(
+            i for i in range(dialogo.tabla.rowCount())
+            if dialogo.tabla.item(i, 0).text() == "rios"
+        )
+        src = dialogo.tabla.item(fila, 3)
+        self.assertIn("EPSG:4326 (QGIS)", src.text())
+        self.assertIn("distinto del archivo", src.text())
+        self.assertIn("SRC asignado en QGIS: EPSG:4326", src.toolTip())
+        self.assertIn("SRC declarado por el archivo:", src.toolTip())
+        self.assertIn("EPSG:32615", src.toolTip())
+        self.assertFalse(celda.flags() & Qt.ItemIsEnabled)
+        self.assertFalse(celda.flags() & Qt.ItemIsUserCheckable)
+        self.assertNotIn(dialogo.plan.unidad_de_capa(rios.id()).clave_unidad, dialogo.plan.seleccionadas)
+
+    def prueba_ux02_dos_capas_una_fuente_src_distinto_solo_en_una(self):
+        """No atribuir a otra capa la diferencia de SRC de su compañera."""
+        rios_a = self.rios()
+        rios_a.setName("rios_a")
+        rios_b = QgsVectorLayer(rios_a.source(), "rios_b", "ogr")
+        self.proyecto.addMapLayer(rios_b)
+        rios_a.setCrs(QgsCoordinateReferenceSystem("EPSG:4326"))
+        self.assertEqual(rios_b.crs().authid(), "EPSG:32615")
+        dialogo = self.abrir()
+        self.assertIs(
+            dialogo.plan.unidad_de_capa(rios_a.id()),
+            dialogo.plan.unidad_de_capa(rios_b.id()),
+        )
+        fila_a = next(i for i in range(dialogo.tabla.rowCount())
+                      if dialogo.tabla.item(i, 0).text() == "rios_a")
+        fila_b = next(i for i in range(dialogo.tabla.rowCount())
+                      if dialogo.tabla.item(i, 0).text() == "rios_b")
+        src_a = dialogo.tabla.item(fila_a, 3)
+        src_b = dialogo.tabla.item(fila_b, 3)
+        self.assertIn("distinto del archivo", src_a.text())
+        self.assertNotIn("distinto del archivo", src_b.text())
+        self.assertNotIn("no disponible", src_b.toolTip())
+        estado_b = dialogo.tabla.item(fila_b, INDICE_INCORPORAR)
+        self.assertIn("otra capa", estado_b.text())
+        for capa, fila in ((rios_a, fila_a), (rios_b, fila_b)):
+            casilla = dialogo.tabla.item(fila, 0)
+            self.assertEqual(casilla.checkState(), Qt.Unchecked)
+            self.assertFalse(casilla.flags() & Qt.ItemIsEnabled)
+            self.assertFalse(casilla.flags() & Qt.ItemIsUserCheckable)
+            clave = dialogo.plan.unidad_de_capa(capa.id()).clave_unidad
+            self.assertNotIn(clave, dialogo.plan.seleccionadas)
+
+    def prueba_ux02_dos_capas_fuente_sin_src_con_asignacion_parcial(self):
+        """Sin SRC en archivo: no afirmar que la capa sin SRC tiene asignación QGIS."""
+        ruta = shp_sin_prj(self.externos)
+        parc_a = QgsVectorLayer(str(ruta), "parc_a", "ogr")
+        parc_b = QgsVectorLayer(str(ruta), "parc_b", "ogr")
+        parc_a.setCrs(UTM)
+        self.proyecto.addMapLayer(parc_a)
+        self.proyecto.addMapLayer(parc_b)
+        self.assertFalse(parc_b.crs().isValid())
+        dialogo = self.abrir()
+        self.assertIs(
+            dialogo.plan.unidad_de_capa(parc_a.id()),
+            dialogo.plan.unidad_de_capa(parc_b.id()),
+        )
+        fila_a = next(i for i in range(dialogo.tabla.rowCount())
+                      if dialogo.tabla.item(i, 0).text() == "parc_a")
+        fila_b = next(i for i in range(dialogo.tabla.rowCount())
+                      if dialogo.tabla.item(i, 0).text() == "parc_b")
+        src_a = dialogo.tabla.item(fila_a, 3)
+        src_b = dialogo.tabla.item(fila_b, 3)
+        self.assertIn("EPSG:32615 (QGIS) · archivo sin SRC", src_a.text())
+        self.assertNotIn("(QGIS) · archivo sin SRC", src_b.text())
+        self.assertIn("La capa no tiene SRC", src_b.text())
+        estado_b = dialogo.tabla.item(fila_b, INDICE_INCORPORAR)
+        estado_a = dialogo.tabla.item(fila_a, INDICE_INCORPORAR)
+        self.assertIn("SRC en QGIS, archivo sin SRC", estado_a.text())
+        self.assertIn(
+            "Esta capa tiene un SRC asignado en QGIS, pero el archivo original "
+            "no declara un SRC válido.",
+            estado_a.toolTip(),
+        )
+        self.assertNotIn("esta capa no tiene SRC", estado_a.text())
+        self.assertIn("esta capa no tiene SRC asignado", estado_b.text())
+        self.assertIn(
+            "Esta capa no tiene un SRC asignado. Revisa también el SRC del archivo original.",
+            estado_b.toolTip(),
+        )
+        for estado in (estado_a, estado_b):
+            self.assertIn(
+                "Esta fuente tiene problemas de SRC pendientes. "
+                "Sus capas no pueden organizarse todavía.",
+                estado.toolTip(),
+            )
+        for capa, fila in ((parc_a, fila_a), (parc_b, fila_b)):
+            casilla = dialogo.tabla.item(fila, 0)
+            self.assertEqual(casilla.checkState(), Qt.Unchecked)
+            self.assertFalse(casilla.flags() & Qt.ItemIsEnabled)
+            self.assertFalse(casilla.flags() & Qt.ItemIsUserCheckable)
+            clave = dialogo.plan.unidad_de_capa(capa.id()).clave_unidad
+            self.assertNotIn(clave, dialogo.plan.seleccionadas)
+
+    def prueba_ux02_r2_fuente_con_src_y_otra_capa_sin_asignar(self):
+        """R-2 F: una capa correcta no debe heredar «la capa no tiene SRC»."""
+        rios_a = self.rios()
+        rios_a.setName("rios_a")
+        rios_b = QgsVectorLayer(rios_a.source(), "rios_b", "ogr")
+        self.proyecto.addMapLayer(rios_b)
+        rios_a.setCrs(QgsCoordinateReferenceSystem())
+        self.assertFalse(rios_a.crs().isValid())
+        self.assertEqual(rios_b.crs().authid(), "EPSG:32615")
+        self.assertEqual(rios_b.dataProvider().crs().authid(), "EPSG:32615")
+        dialogo = self.abrir()
+        self.assertIs(dialogo.plan.unidad_de_capa(rios_a.id()),
+                      dialogo.plan.unidad_de_capa(rios_b.id()))
+        fila_a = next(i for i in range(dialogo.tabla.rowCount())
+                      if dialogo.tabla.item(i, 0).text() == "rios_a")
+        fila_b = next(i for i in range(dialogo.tabla.rowCount())
+                      if dialogo.tabla.item(i, 0).text() == "rios_b")
+        estado_a = dialogo.tabla.item(fila_a, INDICE_INCORPORAR)
+        estado_b = dialogo.tabla.item(fila_b, INDICE_INCORPORAR)
+        self.assertIn("esta capa no tiene SRC asignado", estado_a.text())
+        self.assertIn("otra capa", estado_b.text())
+        self.assertNotIn("la capa no tiene src", estado_b.toolTip().lower())
+        self.assertIn("EPSG:32615", dialogo.tabla.item(fila_b, 3).text())
+        self.assertIn("igual al proyecto", dialogo.tabla.item(fila_b, 3).text())
+        for capa, fila in ((rios_a, fila_a), (rios_b, fila_b)):
+            casilla = dialogo.tabla.item(fila, 0)
+            self.assertEqual(casilla.checkState(), Qt.Unchecked)
+            self.assertFalse(casilla.flags() & Qt.ItemIsEnabled)
+            self.assertFalse(casilla.flags() & Qt.ItemIsUserCheckable)
+            self.assertNotIn(dialogo.plan.unidad_de_capa(capa.id()).clave_unidad,
+                             dialogo.plan.seleccionadas)
+        self.assertFalse(dialogo.boton_preparar.isEnabled())
+
+    def prueba_ux02_r2_fuente_con_src_distinto_y_otra_capa_sin_asignar(self):
+        """R-2 E: el SRC distinto de una capa no hereda el error de otra sin SRC."""
+        rios_a = self.rios()
+        rios_a.setName("rios_a")
+        rios_b = QgsVectorLayer(rios_a.source(), "rios_b", "ogr")
+        self.proyecto.addMapLayer(rios_b)
+        rios_a.setCrs(QgsCoordinateReferenceSystem("EPSG:4326"))
+        rios_b.setCrs(QgsCoordinateReferenceSystem())
+        self.assertEqual(rios_a.crs().authid(), "EPSG:4326")
+        self.assertFalse(rios_b.crs().isValid())
+        self.assertEqual(rios_a.dataProvider().crs().authid(), "EPSG:32615")
+        dialogo = self.abrir()
+        self.assertIs(dialogo.plan.unidad_de_capa(rios_a.id()),
+                      dialogo.plan.unidad_de_capa(rios_b.id()))
+        fila_a = next(i for i in range(dialogo.tabla.rowCount())
+                      if dialogo.tabla.item(i, 0).text() == "rios_a")
+        fila_b = next(i for i in range(dialogo.tabla.rowCount())
+                      if dialogo.tabla.item(i, 0).text() == "rios_b")
+        estado_a = dialogo.tabla.item(fila_a, INDICE_INCORPORAR)
+        estado_b = dialogo.tabla.item(fila_b, INDICE_INCORPORAR)
+        self.assertIn("no coinciden", estado_a.text())
+        self.assertIn("SRC asignado en QGIS y el SRC declarado", estado_a.toolTip())
+        self.assertNotIn("la capa no tiene src", estado_a.toolTip().lower())
+        self.assertIn("esta capa no tiene SRC asignado", estado_b.text())
+        self.assertIn("distinto del archivo", dialogo.tabla.item(fila_a, 3).text())
+        self.assertIn("La capa no tiene SRC", dialogo.tabla.item(fila_b, 3).text())
+        for capa, fila in ((rios_a, fila_a), (rios_b, fila_b)):
+            casilla = dialogo.tabla.item(fila, 0)
+            self.assertEqual(casilla.checkState(), Qt.Unchecked)
+            self.assertFalse(casilla.flags() & Qt.ItemIsEnabled)
+            self.assertFalse(casilla.flags() & Qt.ItemIsUserCheckable)
+            self.assertNotIn(dialogo.plan.unidad_de_capa(capa.id()).clave_unidad,
+                             dialogo.plan.seleccionadas)
+        self.assertFalse(dialogo.boton_preparar.isEnabled())
 
     # --- D-70 -----------------------------------------------------------------------------
 
