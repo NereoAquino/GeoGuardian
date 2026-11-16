@@ -59,13 +59,15 @@ TITULO_PLAN = "Plan de organización de capas"
 SIN_PLAN = "No se pudo mostrar el plan de organización. Revisa el registro de mensajes de QGIS."
 AYUDA_PLAN_OBSOLETO = "Pulsa «Volver a revisar» antes de consultar un plan actualizado."
 TEXTO_INTRO_ORGANIZACION = (
-    "GeoGuardian puede proponerte reunir copias de capas vectoriales compatibles en Proyecto.gpkg " 
-    "para facilitar su conservación y transporte. Los archivos originales se conservarían. " 
-    "Por ahora solo verás un plan: no se copiará ni modificará ningún archivo."
+    "GeoGuardian puede proponerte reunir copias de capas vectoriales compatibles en un archivo "
+    "de datos geográficos GeoPackage (Proyecto.gpkg) para facilitar su conservación y transporte. "
+    "Los archivos originales se conservarían. Por ahora solo verás un plan: "
+    "no se copiará ni modificará ningún archivo."
 )
 AYUDA_ADVERTENCIA_SRC = (
-    "¿Por qué aparece esta advertencia? Sitúa el cursor sobre la columna «SRC» " 
-    "o «Organizar» de la capa afectada para ver qué encontró GeoGuardian y qué revisar."
+    "¿Por qué aparece esta advertencia? El sistema de referencia de coordenadas (SRC) indica "
+    "cómo interpretar la ubicación de los datos. Sitúa el cursor sobre la columna «SRC» "
+    "o «Organizar» de la capa afectada para conocer el problema y qué revisar."
 )
 ROL_CLAVE = Qt.UserRole + 1
 ANCHO_MAXIMO_COLUMNA = 280  # px; el texto completo queda en la ayuda emergente
@@ -109,6 +111,10 @@ class DialogoRevisarCapasConPlan(DialogoRevisarCapas):
 
         self.tabla.setColumnCount(len(COLUMNAS) + 1)
         self.tabla.setHorizontalHeaderLabels(COLUMNAS + (COLUMNA_INCORPORAR,))
+        self.tabla.horizontalHeaderItem(3).setToolTip(
+            "Sistema de referencia de coordenadas (SRC): indica cómo interpretar la ubicación "
+            "de los datos. QGIS puede tener un SRC asignado distinto del declarado por el archivo."
+        )
         # Solo cambia el orden visual: "Organizar" junto a "Capa", sin mover las columnas del Hito 1.
         self.tabla.horizontalHeader().moveSection(INDICE_INCORPORAR, 1)
         self.tabla.itemChanged.connect(self._al_cambiar_celda)
