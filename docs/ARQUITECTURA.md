@@ -530,3 +530,92 @@ conteos de `gg_eventos` y `gg_recursos`; fuentes, filtros, SRC, edición e indic
 | `dominio` (plan) | biblioteca estándar, `constantes`, otros módulos de `dominio` | todo lo demás |
 | `incorporacion` | `dominio`, `contexto`, `constantes`, `inventario`, `monitoreo.descriptor_fuente` (solo funciones públicas), `qgis.core`, Qt; `sqlite3` solo en `lector_geopaquete.py` | `persistencia`, `manifiesto`, `eventos`, `administracion`, `interfaz` |
 | `interfaz/dialogo_incorporacion.py` | `dominio`, `interfaz/dialogo_revisar_capas.py`, Qt | `inventario`, `incorporacion`, `persistencia` (recibe las funciones que construyen y revalidan) |
+
+## 16. v0.2.0-dev · Ajustes UX-01/UX-02 del Hito 2 (D-71 y D-72, 2026-11-15)
+
+**Alcance y estado.** Esta sección actualiza la presentación de la sección 15, que
+conserva la descripción histórica del Hito 2 de octubre de 2026.
+Las redacciones actuales fueron **aprobadas por el responsable humano (D-72)**;
+la implementación está en la rama `feat/ux01-ux02-comunicacion`, PR #1
+**en borrador**. La aprobación de textos no representa aprobación de comprensión
+estudiantil ni autorización de publicación o fusión.
+
+### Interfaz del plan (UX-01)
+
+`DialogoRevisarCapasConPlan` extiende el diálogo de inventario sin alterar
+`interfaz/dialogo_revisar_capas.py` (Hito 1). Los textos visibles del Hito 2
+emplean **«Organizar»**, **«Ver plan de organización»**, **«Plan de organización
+de capas»** y **«Se puede organizar»**. El conteo habla de elementos
+**en el plan**.
+
+La introducción explica que una organización futura podría reunir copias
+de capas vectoriales compatibles en el GeoPackage `Proyecto.gpkg`, manteniendo
+los originales; la operación **no ocurre** en este hito. La vista previa
+dice expresamente: «Esto es solo un plan: todavía no se ha copiado ni
+modificado ningún archivo». El Hito 2 continúa sin ejecutar copias,
+conversiones, reproyecciones ni reenlaces (D-68).
+
+**Texto de campos calculados (D-61):** la ayuda usa el condicional
+«Si en una etapa posterior se organiza esta capa...», ya que el plan no
+convierte campos calculados en valores. La elegibilidad sigue siendo
+**con advertencia**, no bloqueada.
+
+### Advertencias de SRC por capa y bloqueo por unidad (UX-02)
+
+1. `inventario` describe el SRC asignado a cada capa en QGIS y el
+   SRC válido que declara el archivo o proveedor. La comparación con la
+   fuente se muestra de forma diferenciada.
+2. `dominio/plan_incorporacion.py` conserva la evaluación por unidad
+   (fuente compartida) y las reglas D-59/D-69: un SRC ausente o una
+   discrepancia archivo/QGIS bloquea; un SRC de fuente distinto al del
+   proyecto genera advertencia según las condiciones aprobadas.
+3. `interfaz/dialogo_incorporacion.py::_decorar_fila` presenta el
+   **motivo de SRC de cada capa**, evitando que la fila herede el error
+   individual de una capa hermana. Consulta `capa.src`,
+   `capa.src_fuente_distinto` y la huella por `id_capa`, junto con
+   los motivos de la unidad. En fuentes multicapa, incluye el aviso de
+   que la **fuente completa** permanece bloqueada cuando corresponde.
+4. El indicador de selección de la **columna 0** es el que se
+   deshabilita; la columna informativa «Organizar» permanece legible.
+   La unidad bloqueada queda fuera de `plan.seleccionadas` y de la
+   vista previa.
+5. La ayuda contextual explica qué significa un sistema de referencia
+   de coordenadas (SRC), distingue el SRC de QGIS del declarado por
+   el archivo, y propone corregirlo en la fuente y pulsar
+   «Volver a revisar». GeoGuardian no cambia ni asigna SRC.
+
+En los escenarios F-2, R-1 y R-2, las advertencias individualizadas
+y el bloqueo fueron verificados mediante pruebas de integración y sondas
+independientes. **R-3 permanece abierto:** una capa en modo edición
+puede mostrar solo el problema de SRC de otra capa de su fuente. El texto
+es verdadero, pero omite una advertencia simultánea; queda registrado
+como mejora de comunicación, sin alterar el bloqueo.
+
+### Plan desactualizado (D-70) y evidencia
+
+`plan_obsoleto`, `puede_preparar()` y `_invalidar_plan()` conservan
+el flujo de la sección 15. Si cambia una capa, se invalida la vista previa
+y «Ver plan de organización» queda deshabilitado, incluso si se cambian
+casillas. La ayuda aprobada indica: «Pulsa «Volver a revisar» antes de
+consultar un plan actualizado».
+
+**Última auditoría técnica del código, commit `25b22ab`:** Linux,
+QGIS 3.44.15 y Python 3.14.4 sin pantalla, `TMPDIR=/tmp`.
+Se ejecutaron 246 pruebas unitarias (OK, una omitida) y 112 de
+integración (un fallo preexistente, reproducido también en la base:
+`prueba_guardar_ahora_no_confirma_ediciones`). No aparecieron fallos
+nuevos atribuibles al PR; D-59, D-68, D-69 y D-70 conservaron
+su comportamiento en las comprobaciones realizadas.
+
+**Validación pendiente:** Windows/QGIS 3.28, comprensión de estudiantes
+(criterio **CA-06 NO APROBADO**), comprobaciones manuales CA-01 a
+CA-05 sobre la nueva interfaz y comportamiento del fallo anterior
+en la versión objetivo. El PR no debe integrarse ni publicarse hasta
+satisfacer los criterios de aceptación correspondientes.
+
+La aprobación literal de los mensajes se encuentra en
+[D-72](DECISIONES.md); la especificación [GEOGUARDIAN-UX-001](GEOGUARDIAN-UX-001.md)
+mantiene el antecedente conceptual y el registro de
+[NORTE-PILOTO-001](validacion_hito2_windows_norte.md) conserva
+el resultado histórico de la prueba con estudiantes.
+
