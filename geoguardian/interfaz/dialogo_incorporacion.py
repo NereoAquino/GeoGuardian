@@ -271,13 +271,25 @@ class DialogoRevisarCapasConPlan(DialogoRevisarCapas):
                 or MotivoAtencion.SRC_ASIGNADO_DISTINTO in unidad.motivos
             )
         )
-        if origen_compartido_con_problema_src and not (src_solo_qgis or src_distinto_archivo):
+        if src_solo_qgis and MotivoAtencion.SIN_SRC in unidad.motivos:
+            # R-1: otra capa de esta misma fuente carece también del SRC asignado
+            # en QGIS. El motivo principal de la unidad no describe esta capa.
+            texto = "Necesita atención: SRC en QGIS, archivo sin SRC"
+            ayuda = (
+                "Esta capa tiene un SRC asignado en QGIS, pero el archivo original "
+                "no declara un SRC válido. "
+                "Esta fuente tiene problemas de SRC pendientes. "
+                "Sus capas no pueden organizarse todavía. "
+                "Comprueba el SRC del archivo y pulsa «Volver a revisar»."
+            )
+        elif origen_compartido_con_problema_src and not (src_solo_qgis or src_distinto_archivo):
             if capa.es_espacial and not capa.src.valido:
-                texto = "Necesita atención: esta capa no tiene SRC"
+                texto = "Necesita atención: esta capa no tiene SRC asignado"
                 ayuda = (
-                    "Esta capa no tiene un sistema de referencia de coordenadas (SRC) asignado "
-                    "en QGIS. La fuente está compartida con otras capas y el conjunto permanece "
-                    "bloqueado hasta corregir los problemas de SRC y volver a revisar."
+                    "Esta capa no tiene un SRC asignado. Revisa también el SRC del "
+                    "archivo original. Esta fuente tiene problemas de SRC pendientes. "
+                    "Sus capas no pueden organizarse todavía. "
+                    "Corrige la situación y pulsa «Volver a revisar»."
                 )
             else:
                 texto = "Necesita atención: otra capa de esta fuente tiene un problema de SRC"
