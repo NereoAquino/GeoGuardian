@@ -927,3 +927,106 @@ mostrarse sin una revisión nueva.
 **Relación con decisiones vigentes.** Esta aprobación conceptual propone un ajuste futuro de las etiquetas fijadas en **D-65**, conservando intacto su registro histórico y el comportamiento actualmente implementado. **D-59** y **D-69** mantienen los bloqueos y reglas de SRC; **D-70** conserva la invalidación de planes obsoletos hasta «Volver a revisar»; **D-68** mantiene la preparación del plan exclusivamente en memoria, sin escritura ni copia. Renombrar botones no cambiará estas reglas.
 
 **Especificación de referencia:** [GEOGUARDIAN-UX-001 v0.1](GEOGUARDIAN-UX-001.md). Antes de implementar: revisar el alcance final de los textos, autorizar expresamente el cambio de código, ejecutar pruebas de regresión funcional y obtener nueva evidencia de comprensión con usuarios. La aprobación conceptual de esta decisión **no modifica CA-06 ni autoriza publicar o fusionar nuevas versiones**.
+## D-72 · Redacciones definitivas UX-01/UX-02 — **Aprobada para el PR #1; validación estudiantil pendiente** (NEREO, 2026-11-15)
+
+**Contexto y alcance.** Durante la revisión de F-3 del PR #1
+(\`feat/ux01-ux02-comunicacion\`) el responsable humano aprobó expresamente,
+por separado, las redacciones asociadas a **D-59, D-61, D-65, D-69 y D-70**.
+Esta es una **decisión complementaria de comunicación**: las decisiones originales
+y D-71 permanecen como constancia histórica del estado en que se aprobaron.
+Las siguientes expresiones sustituyen sus **textos de interfaz**, no las reglas.
+
+### D-59 · Diferencias de SRC y capa temporal
+
+- **SRC asignado en QGIS distinto del declarado por el archivo:**
+  > El SRC asignado en QGIS y el SRC declarado por el archivo no coinciden. Comprueba cuál corresponde a los datos, corrige la diferencia y vuelve a revisar. Esta capa permanece bloqueada.
+- **Capa temporal sin SRC:**
+  > Esta capa temporal no tiene SRC. Verifica y define sus coordenadas antes de incluirla en el plan.
+- **SRC de la fuente válido pero diferente del proyecto:**
+  > El SRC de la fuente es diferente al del proyecto. Si se organiza después, se conservaría el SRC de la fuente; GeoGuardian no lo cambia al preparar el plan. Decide si así lo necesitas antes de seleccionarla.
+
+Se conserva el bloqueo por discrepancia entre archivo y capa, el tratamiento de
+temporales sin SRC y la selección con advertencia, sin preselección automática,
+cuando el SRC de la fuente difiere del proyecto.
+
+### D-61 · Campos calculados
+
+> Si en una etapa posterior se organiza esta capa, los campos calculados se guardarían como valores y dejarían de recalcularse automáticamente.
+
+La presencia de campos calculados sigue siendo **advertencia**, no bloqueo.
+El condicional evita presentar la organización futura como ya ejecutada.
+
+### D-65 · Interfaz y explicación de la vista previa
+
+| Elemento | Texto aprobado |
+|---|---|
+| Columna de revisión del plan | «Organizar» |
+| Botón de vista previa | «Ver plan de organización» |
+| Título de la vista previa | «Plan de organización de capas» |
+| Estado elegible | «Se puede organizar» |
+| Ejemplo de contador | «3 elementos en el plan» |
+
+**Introducción aprobada:**
+
+> GeoGuardian puede proponerte reunir copias de capas vectoriales compatibles en un archivo de datos geográficos GeoPackage (Proyecto.gpkg) para facilitar su conservación y transporte. Los archivos originales se conservarían. Por ahora solo verás un plan: no se copiará ni modificará ningún archivo.
+
+**Aviso aprobado de la vista previa:**
+
+> Esto es solo un plan: todavía no se ha copiado ni modificado ningún archivo.
+
+La interfaz mantiene selección compartida por unidad, conflictos de nombre,
+resumen, botón para volver a la lista y ausencia de acción de incorporación real.
+
+### D-69 · Archivo sin SRC válido, aunque QGIS tenga uno asignado
+
+**Texto breve:**
+
+> Necesita atención: el archivo no declara SRC.
+
+**Ayuda aprobada:**
+
+> El archivo original no declara un SRC válido, aunque QGIS tenga uno asignado a la capa. Verifica cuál corresponde a los datos y asegúrate de que quede definido en el archivo. Después pulsa «Volver a revisar». La capa permanece bloqueada hasta entonces.
+
+**Ejemplo aprobado para capas que comparten fuente:**
+
+> Esta capa tiene un SRC asignado en QGIS, pero el archivo original no declara un SRC válido. Esta fuente tiene problemas de SRC pendientes. Sus capas no pueden organizarse todavía.
+
+La visibilidad de la capa no equivale a permiso de selección: la fuente
+permanece bloqueada y fuera del plan hasta corregirse en el archivo y
+volver a revisar. GeoGuardian no asigna ni reproyecta el SRC automáticamente.
+
+### D-70 · Plan desactualizado
+
+**Aviso principal conservado:**
+
+> Algunas capas cambiaron desde la última revisión. Vuelve a revisar antes de continuar.
+
+**Ayuda actualizada del botón:**
+
+> Pulsa «Volver a revisar» antes de consultar un plan actualizado.
+
+El plan anterior se invalida, la vista previa se vacía y «Ver plan de
+organización» queda deshabilitado; cambiar casillas no lo reactiva. Solo una
+nueva revisión puede habilitar la consulta del nuevo plan.
+
+### Alcance de la aprobación y evidencia
+
+- **Solo comunicación:** no se modifica D-59, D-61, D-65, D-68, D-69 o D-70 en
+  cuanto a elegibilidad, selección, guardado, revalidación o ausencia de escrituras.
+- La implementación de estos mensajes está en el **PR #1 en borrador**,
+  no en \`main\` ni en una versión publicada.
+- **Auditoría técnica previa a esta decisión:** sobre
+  \`25b22ab715d3ed4a5f839406f72b5508738816d1\`, Hermes informó 246 pruebas
+  unitarias OK (una omitida) y 112 de integración con **un fallo preexistente**,
+  \`prueba_guardar_ahora_no_confirma_ediciones\`, reproducido también en la base
+  \`2fec872\` con QGIS 3.44.15 en Linux. Cero fallos nuevos atribuibles al PR.
+  F-1, F-2, R-1 y R-2 están cerrados según sus dictámenes.
+- **Pendientes:** R-3 (aviso incompleto cuando coinciden problemas de SRC y
+  edición; registrado sin cambio de comportamiento), CA-06 **NO APROBADO**,
+  pruebas manuales y comprensión con usuarios en **Windows/QGIS 3.28**,
+  así como comprobar allí el fallo preexistente detectado en Linux.
+- Esta aprobación de redacciones y su registro documental **no autorizan**
+  fusionar el PR, publicar un ZIP ni declarar aprobada la validación
+  estudiantil. Ver [especificación histórica UX-001](GEOGUARDIAN-UX-001.md)
+  y [registro NORTE-PILOTO-001](validacion_hito2_windows_norte.md).
+
