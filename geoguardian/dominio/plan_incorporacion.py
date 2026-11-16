@@ -263,8 +263,8 @@ GEOPAQUETE_NO_UTILIZABLE = (
     "Revisa el panel de GeoGuardian."
 )
 GEOPAQUETE_AJENO = (
-    "Proyecto.gpkg no corresponde a este proyecto administrado, así que no se puede preparar la "
-    "organización."
+    "Proyecto.gpkg no corresponde a este proyecto administrado, así que no se puede mostrar "
+    "el plan de organización."
 )
 GEOPAQUETE_ILEGIBLE = "No se pudo leer Proyecto.gpkg, así que no se puede mostrar el plan de organización."
 
