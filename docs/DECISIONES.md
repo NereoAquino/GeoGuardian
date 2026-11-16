@@ -930,7 +930,7 @@ mostrarse sin una revisión nueva.
 ## D-72 · Redacciones definitivas UX-01/UX-02 — **Aprobada para el PR #1; validación estudiantil pendiente** (NEREO, 2026-11-15)
 
 **Contexto y alcance.** Durante la revisión de F-3 del PR #1
-(\`feat/ux01-ux02-comunicacion\`) el responsable humano aprobó expresamente,
+(`feat/ux01-ux02-comunicacion`) el responsable humano aprobó expresamente,
 por separado, las redacciones asociadas a **D-59, D-61, D-65, D-69 y D-70**.
 Esta es una **decisión complementaria de comunicación**: las decisiones originales
 y D-71 permanecen como constancia histórica del estado en que se aprobaron.
@@ -1014,12 +1014,12 @@ nueva revisión puede habilitar la consulta del nuevo plan.
 - **Solo comunicación:** no se modifica D-59, D-61, D-65, D-68, D-69 o D-70 en
   cuanto a elegibilidad, selección, guardado, revalidación o ausencia de escrituras.
 - La implementación de estos mensajes está en el **PR #1 en borrador**,
-  no en \`main\` ni en una versión publicada.
+  no en `main` ni en una versión publicada.
 - **Auditoría técnica previa a esta decisión:** sobre
-  \`25b22ab715d3ed4a5f839406f72b5508738816d1\`, Hermes informó 246 pruebas
+  `25b22ab715d3ed4a5f839406f72b5508738816d1`, Hermes informó 246 pruebas
   unitarias OK (una omitida) y 112 de integración con **un fallo preexistente**,
-  \`prueba_guardar_ahora_no_confirma_ediciones\`, reproducido también en la base
-  \`2fec872\` con QGIS 3.44.15 en Linux. Cero fallos nuevos atribuibles al PR.
+  `prueba_guardar_ahora_no_confirma_ediciones`, reproducido también en la base
+  `2fec872` con QGIS 3.44.15 en Linux. Cero fallos nuevos atribuibles al PR.
   F-1, F-2, R-1 y R-2 están cerrados según sus dictámenes.
 - **Pendientes:** R-3 (aviso incompleto cuando coinciden problemas de SRC y
   edición; registrado sin cambio de comportamiento), CA-06 **NO APROBADO**,
