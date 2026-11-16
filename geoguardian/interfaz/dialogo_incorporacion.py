@@ -256,24 +256,27 @@ class DialogoRevisarCapasConPlan(DialogoRevisarCapas):
             if MotivoAtencion.SRC_DEFINIDO_EN_QGIS in unidad.motivos:
                 celda_src.setText("{} (QGIS) · archivo sin SRC".format(src_qgis))
                 celda_src.setToolTip(
-                    "¿Por qué aparece esta advertencia?\\n"
-                    "SRC asignado en QGIS: {}.\\n"
-                    "SRC declarado por el archivo: no definido.\\n"
-                    "El archivo no guarda ese SRC; comprueba cuál corresponde a sus datos, "
-                    "defínelo correctamente en la fuente y pulsa «Volver a revisar». "
-                    "La capa no puede organizarse mientras falte el SRC del archivo.".format(src_qgis)
+                    (
+                        "¿Por qué aparece esta advertencia?\n"
+                        "SRC asignado en QGIS: {}.\n"
+                        "SRC declarado por el archivo: no definido.\n"
+                        "El archivo no guarda ese SRC; comprueba cuál corresponde a sus datos, "
+                        "defínelo correctamente en la fuente y pulsa «Volver a revisar». "
+                        "La capa no puede organizarse mientras falte el SRC del archivo."
+                    ).format(src_qgis)
                 )
             elif MotivoAtencion.SRC_ASIGNADO_DISTINTO in unidad.motivos:
                 src_archivo = (capa.src_fuente_distinto.texto()
                                if capa.src_fuente_distinto is not None else "no disponible")
                 celda_src.setText("{} (QGIS) · distinto del archivo".format(src_qgis))
                 celda_src.setToolTip(
-                    "¿Por qué aparece esta advertencia?\\n"
-                    "SRC asignado en QGIS: {}.\\n"
-                    "SRC declarado por el archivo: {}.\\n"
-                    "No coinciden: comprueba cuál corresponde a los datos, corrige "
-                    "la diferencia y pulsa «Volver a revisar». La capa sigue bloqueada."
-                    .format(src_qgis, src_archivo)
+                    (
+                        "¿Por qué aparece esta advertencia?\n"
+                        "SRC asignado en QGIS: {}.\n"
+                        "SRC declarado por el archivo: {}.\n"
+                        "No coinciden: comprueba cuál corresponde a los datos, corrige "
+                        "la diferencia y pulsa «Volver a revisar». La capa sigue bloqueada."
+                    ).format(src_qgis, src_archivo)
                 )
         celda_capa = self.tabla.item(fila, 0)
         celda_capa.setData(ROL_CLAVE, unidad.clave_unidad)
