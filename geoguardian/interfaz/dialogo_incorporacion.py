@@ -33,6 +33,7 @@ from ..dominio.plan_incorporacion import (
     AVISO_PLAN,
     TEXTO_NO_VECTORIAL,
     TEXTO_SIN_PLAN,
+    TEXTO_MOTIVO,
     MotivoAtencion,
     PlanIncorporacion,
     ResultadoPlan,
@@ -266,37 +267,49 @@ class DialogoRevisarCapasConPlan(DialogoRevisarCapas):
             and MotivoAtencion.SRC_ASIGNADO_DISTINTO in unidad.motivos
         )
         origen_compartido_con_problema_src = bool(
-            unidad is not None and (
-                MotivoAtencion.SRC_DEFINIDO_EN_QGIS in unidad.motivos
-                or MotivoAtencion.SRC_ASIGNADO_DISTINTO in unidad.motivos
+            unidad is not None and len(unidad.ids_capas) > 1 and any(
+                motivo in unidad.motivos for motivo in (
+                    MotivoAtencion.SIN_SRC,
+                    MotivoAtencion.TEMPORAL_SIN_SRC,
+                    MotivoAtencion.SRC_DEFINIDO_EN_QGIS,
+                    MotivoAtencion.SRC_ASIGNADO_DISTINTO,
+                )
             )
         )
-        if src_solo_qgis and MotivoAtencion.SIN_SRC in unidad.motivos:
-            # R-1: otra capa de esta misma fuente carece también del SRC asignado
-            # en QGIS. El motivo principal de la unidad no describe esta capa.
-            texto = "Necesita atención: SRC en QGIS, archivo sin SRC"
-            ayuda = (
-                "Esta capa tiene un SRC asignado en QGIS, pero el archivo original "
-                "no declara un SRC válido. "
+        # UX-02 / R-2: la unidad se bloquea en conjunto, pero el estado y la
+        # ayuda de cada fila describen únicamente el SRC de esa capa. No se
+        # atribuye a una capa el motivo individual de otra capa de la fuente.
+        if origen_compartido_con_problema_src:
+            aviso_conjunto = (
                 "Esta fuente tiene problemas de SRC pendientes. "
-                "Sus capas no pueden organizarse todavía. "
-                "Comprueba el SRC del archivo y pulsa «Volver a revisar»."
+                "Sus capas no pueden organizarse todavía."
             )
-        elif origen_compartido_con_problema_src and not (src_solo_qgis or src_distinto_archivo):
             if capa.es_espacial and not capa.src.valido:
                 texto = "Necesita atención: esta capa no tiene SRC asignado"
                 ayuda = (
                     "Esta capa no tiene un SRC asignado. Revisa también el SRC del "
-                    "archivo original. Esta fuente tiene problemas de SRC pendientes. "
-                    "Sus capas no pueden organizarse todavía. "
-                    "Corrige la situación y pulsa «Volver a revisar»."
+                    "archivo original. " + aviso_conjunto +
+                    " Corrige la situación y pulsa «Volver a revisar»."
+                )
+            elif src_solo_qgis:
+                texto = "Necesita atención: SRC en QGIS, archivo sin SRC"
+                ayuda = (
+                    "Esta capa tiene un SRC asignado en QGIS, pero el archivo original "
+                    "no declara un SRC válido. " + aviso_conjunto +
+                    " Comprueba el SRC del archivo y pulsa «Volver a revisar»."
+                )
+            elif src_distinto_archivo:
+                texto = "Necesita atención: los SRC del archivo y QGIS no coinciden"
+                ayuda = (
+                    TEXTO_MOTIVO[MotivoAtencion.SRC_ASIGNADO_DISTINTO] +
+                    " " + aviso_conjunto
                 )
             else:
                 texto = "Necesita atención: otra capa de esta fuente tiene un problema de SRC"
                 ayuda = (
-                    "Esta capa no presenta la diferencia de SRC indicada para otra capa "
-                    "de la misma fuente. Como se organizan juntas, el conjunto permanece "
-                    "bloqueado hasta corregir la otra capa y volver a revisar."
+                    "Esta capa no presenta el problema de SRC detectado en otra capa "
+                    "de la misma fuente. " + aviso_conjunto +
+                    " Corrige la otra capa y pulsa «Volver a revisar»."
                 )
         celda = QTableWidgetItem(texto)
         celda.setToolTip(ayuda)
