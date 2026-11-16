@@ -240,6 +240,74 @@ class PruebaDialogoAjustes(BaseIntegracion):
             clave = dialogo.plan.unidad_de_capa(capa.id()).clave_unidad
             self.assertNotIn(clave, dialogo.plan.seleccionadas)
 
+    def prueba_ux02_r2_fuente_con_src_y_otra_capa_sin_asignar(self):
+        """R-2 F: una capa correcta no debe heredar «la capa no tiene SRC»."""
+        rios_a = self.rios()
+        rios_a.setName("rios_a")
+        rios_b = QgsVectorLayer(rios_a.source(), "rios_b", "ogr")
+        self.proyecto.addMapLayer(rios_b)
+        rios_a.setCrs(QgsCoordinateReferenceSystem())
+        self.assertFalse(rios_a.crs().isValid())
+        self.assertEqual(rios_b.crs().authid(), "EPSG:32615")
+        self.assertEqual(rios_b.dataProvider().crs().authid(), "EPSG:32615")
+        dialogo = self.abrir()
+        self.assertIs(dialogo.plan.unidad_de_capa(rios_a.id()),
+                      dialogo.plan.unidad_de_capa(rios_b.id()))
+        fila_a = next(i for i in range(dialogo.tabla.rowCount())
+                      if dialogo.tabla.item(i, 0).text() == "rios_a")
+        fila_b = next(i for i in range(dialogo.tabla.rowCount())
+                      if dialogo.tabla.item(i, 0).text() == "rios_b")
+        estado_a = dialogo.tabla.item(fila_a, INDICE_INCORPORAR)
+        estado_b = dialogo.tabla.item(fila_b, INDICE_INCORPORAR)
+        self.assertIn("esta capa no tiene SRC asignado", estado_a.text())
+        self.assertIn("otra capa", estado_b.text())
+        self.assertNotIn("la capa no tiene SRC", estado_b.toolTip().lower())
+        self.assertIn("EPSG:32615", dialogo.tabla.item(fila_b, 3).text())
+        self.assertIn("igual al proyecto", dialogo.tabla.item(fila_b, 3).text())
+        for capa, fila in ((rios_a, fila_a), (rios_b, fila_b)):
+            casilla = dialogo.tabla.item(fila, 0)
+            self.assertEqual(casilla.checkState(), Qt.Unchecked)
+            self.assertFalse(casilla.flags() & Qt.ItemIsEnabled)
+            self.assertFalse(casilla.flags() & Qt.ItemIsUserCheckable)
+            self.assertNotIn(dialogo.plan.unidad_de_capa(capa.id()).clave_unidad,
+                             dialogo.plan.seleccionadas)
+        self.assertFalse(dialogo.boton_preparar.isEnabled())
+
+    def prueba_ux02_r2_fuente_con_src_distinto_y_otra_capa_sin_asignar(self):
+        """R-2 E: el SRC distinto de una capa no hereda el error de otra sin SRC."""
+        rios_a = self.rios()
+        rios_a.setName("rios_a")
+        rios_b = QgsVectorLayer(rios_a.source(), "rios_b", "ogr")
+        self.proyecto.addMapLayer(rios_b)
+        rios_a.setCrs(QgsCoordinateReferenceSystem("EPSG:4326"))
+        rios_b.setCrs(QgsCoordinateReferenceSystem())
+        self.assertEqual(rios_a.crs().authid(), "EPSG:4326")
+        self.assertFalse(rios_b.crs().isValid())
+        self.assertEqual(rios_a.dataProvider().crs().authid(), "EPSG:32615")
+        dialogo = self.abrir()
+        self.assertIs(dialogo.plan.unidad_de_capa(rios_a.id()),
+                      dialogo.plan.unidad_de_capa(rios_b.id()))
+        fila_a = next(i for i in range(dialogo.tabla.rowCount())
+                      if dialogo.tabla.item(i, 0).text() == "rios_a")
+        fila_b = next(i for i in range(dialogo.tabla.rowCount())
+                      if dialogo.tabla.item(i, 0).text() == "rios_b")
+        estado_a = dialogo.tabla.item(fila_a, INDICE_INCORPORAR)
+        estado_b = dialogo.tabla.item(fila_b, INDICE_INCORPORAR)
+        self.assertIn("no coinciden", estado_a.text())
+        self.assertIn("SRC asignado en QGIS y el SRC declarado", estado_a.toolTip())
+        self.assertNotIn("la capa no tiene SRC", estado_a.toolTip().lower())
+        self.assertIn("esta capa no tiene SRC asignado", estado_b.text())
+        self.assertIn("distinto del archivo", dialogo.tabla.item(fila_a, 3).text())
+        self.assertIn("La capa no tiene SRC", dialogo.tabla.item(fila_b, 3).text())
+        for capa, fila in ((rios_a, fila_a), (rios_b, fila_b)):
+            casilla = dialogo.tabla.item(fila, 0)
+            self.assertEqual(casilla.checkState(), Qt.Unchecked)
+            self.assertFalse(casilla.flags() & Qt.ItemIsEnabled)
+            self.assertFalse(casilla.flags() & Qt.ItemIsUserCheckable)
+            self.assertNotIn(dialogo.plan.unidad_de_capa(capa.id()).clave_unidad,
+                             dialogo.plan.seleccionadas)
+        self.assertFalse(dialogo.boton_preparar.isEnabled())
+
     # --- D-70 -----------------------------------------------------------------------------
 
     def prueba_d70_plan_obsoleto_hasta_volver_a_revisar(self):
