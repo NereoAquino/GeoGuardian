@@ -157,6 +157,59 @@ class PruebaDialogoAjustes(BaseIntegracion):
         self.assertFalse(celda.flags() & Qt.ItemIsUserCheckable)
         self.assertNotIn(dialogo.plan.unidad_de_capa(rios.id()).clave_unidad, dialogo.plan.seleccionadas)
 
+    def prueba_ux02_dos_capas_una_fuente_src_distinto_solo_en_una(self):
+        """No atribuir a otra capa la diferencia de SRC de su compañera."""
+        rios_a = self.rios()
+        rios_a.setName("rios_a")
+        rios_b = QgsVectorLayer(rios_a.source(), "rios_b", "ogr")
+        self.proyecto.addMapLayer(rios_b)
+        rios_a.setCrs(QgsCoordinateReferenceSystem("EPSG:4326"))
+        self.assertEqual(rios_b.crs().authid(), "EPSG:32615")
+        dialogo = self.abrir()
+        self.assertIs(
+            dialogo.plan.unidad_de_capa(rios_a.id()),
+            dialogo.plan.unidad_de_capa(rios_b.id()),
+        )
+        fila_a = next(i for i in range(dialogo.tabla.rowCount())
+                      if dialogo.tabla.item(i, 0).text() == "rios_a")
+        fila_b = next(i for i in range(dialogo.tabla.rowCount())
+                      if dialogo.tabla.item(i, 0).text() == "rios_b")
+        src_a = dialogo.tabla.item(fila_a, 3)
+        src_b = dialogo.tabla.item(fila_b, 3)
+        self.assertIn("distinto del archivo", src_a.text())
+        self.assertNotIn("distinto del archivo", src_b.text())
+        self.assertNotIn("no disponible", src_b.toolTip())
+        estado_b = dialogo.tabla.item(fila_b, INDICE_INCORPORAR)
+        self.assertIn("otra capa", estado_b.text())
+        self.assertFalse(estado_b.flags() & Qt.ItemIsEnabled)
+
+    def prueba_ux02_dos_capas_fuente_sin_src_con_asignacion_parcial(self):
+        """Sin SRC en archivo: no afirmar que la capa sin SRC tiene asignación QGIS."""
+        ruta = shp_sin_prj(self.externos)
+        parc_a = QgsVectorLayer(str(ruta), "parc_a", "ogr")
+        parc_b = QgsVectorLayer(str(ruta), "parc_b", "ogr")
+        parc_a.setCrs(UTM)
+        self.proyecto.addMapLayer(parc_a)
+        self.proyecto.addMapLayer(parc_b)
+        self.assertFalse(parc_b.crs().isValid())
+        dialogo = self.abrir()
+        self.assertIs(
+            dialogo.plan.unidad_de_capa(parc_a.id()),
+            dialogo.plan.unidad_de_capa(parc_b.id()),
+        )
+        fila_a = next(i for i in range(dialogo.tabla.rowCount())
+                      if dialogo.tabla.item(i, 0).text() == "parc_a")
+        fila_b = next(i for i in range(dialogo.tabla.rowCount())
+                      if dialogo.tabla.item(i, 0).text() == "parc_b")
+        src_a = dialogo.tabla.item(fila_a, 3)
+        src_b = dialogo.tabla.item(fila_b, 3)
+        self.assertIn("EPSG:32615 (QGIS) · archivo sin SRC", src_a.text())
+        self.assertNotIn("(QGIS) · archivo sin SRC", src_b.text())
+        self.assertIn("La capa no tiene SRC", src_b.text())
+        estado_b = dialogo.tabla.item(fila_b, INDICE_INCORPORAR)
+        self.assertIn("esta capa no tiene SRC", estado_b.text())
+        self.assertFalse(estado_b.flags() & Qt.ItemIsEnabled)
+
     # --- D-70 -----------------------------------------------------------------------------
 
     def prueba_d70_plan_obsoleto_hasta_volver_a_revisar(self):
