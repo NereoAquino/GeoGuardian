@@ -256,7 +256,7 @@ class PruebaCampos(BasePlan):
     def prueba_campos_calculados_solo_advierten(self):
         unidad = self.unidad([self.externo("c")], datos={"c": self.datos("c", campos_calculados=("doble",))})
         self.assertEqual((unidad.elegibilidad, unidad.motivos), (El.CON_ADVERTENCIA, (M.CAMPOS_CALCULADOS,)))
-        self.assertIn("dejarán de recalcularse automáticamente", ayuda_estado(unidad))
+        self.assertIn("dejarían de recalcularse automáticamente", ayuda_estado(unidad))
 
 
 class PruebaUnidades(BasePlan):
