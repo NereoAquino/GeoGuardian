@@ -21,6 +21,8 @@
 
 ## Hallazgos pendientes de evaluación
 
+**Actualización documental posterior al cierre:** UX-01 y UX-02 fueron **aprobadas conceptualmente** por el responsable humano; su alcance y criterios se consolidan en [GEOGUARDIAN-UX-001 — Especificación de comunicación y organización de capas](GEOGUARDIAN-UX-001.md). **No existe autorización para implementar código**. Esta aprobación conceptual no modifica el resultado CA-06 (no aprobado) del piloto.
+
 ### UX-01 — Aclarar el propósito para el estudiante (CA-06)
 
 - **Problema:** la acción «Preparar incorporación» no presenta por sí misma el contexto educativo ni el beneficio de reunir capas compatibles.
