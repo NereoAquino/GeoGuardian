@@ -271,9 +271,9 @@ GEOPAQUETE_ILEGIBLE = "No se pudo leer Proyecto.gpkg, así que no se puede prepa
 
 # --- Textos para el estudiante (D-65) -----------------------------------------------------
 
-TEXTO_INCORPORABLE = "Se puede incorporar"
-TEXTO_TEMPORAL_RECOMENDADA = "Capa temporal: se recomienda incorporar"
-TEXTO_NO_VECTORIAL = "No se incorpora en esta versión"
+TEXTO_INCORPORABLE = "Se puede organizar"
+TEXTO_TEMPORAL_RECOMENDADA = "Capa temporal: se recomienda organizar"
+TEXTO_NO_VECTORIAL = "No se organiza en esta versión"
 TEXTO_SIN_PLAN = "—"
 
 # Texto breve para la columna "Incorporar".
@@ -282,9 +282,9 @@ TEXTO_BREVE = {
     MotivoAtencion.RECURSO_EN_LINEA: "Se mantiene conectado",
     MotivoAtencion.BASE_EXTERNA: "Se mantiene conectado",
     MotivoAtencion.VIRTUAL: "Se mantiene conectado",
-    MotivoAtencion.DESCONOCIDA: "No se incorpora: origen desconocido",
+    MotivoAtencion.DESCONOCIDA: "No se puede organizar: origen desconocido",
     MotivoAtencion.NO_DISPONIBLE: "No disponible",
-    MotivoAtencion.SRC_ASIGNADO_DISTINTO: "Necesita atención: revisa el SRC asignado",
+    MotivoAtencion.SRC_ASIGNADO_DISTINTO: "Necesita atención: los SRC del archivo y QGIS no coinciden",
     MotivoAtencion.SIN_SRC: "Necesita atención: la capa no tiene SRC",
     MotivoAtencion.TEMPORAL_SIN_SRC: "Necesita atención: la capa no tiene SRC",
     MotivoAtencion.CAMPO_FID_TIPO: "Necesita atención: revisa el campo «fid»",
@@ -296,10 +296,10 @@ TEXTO_BREVE = {
     MotivoAtencion.EN_EDICION: "Está en modo edición",
     MotivoAtencion.SRC_DIFERENTE: "SRC diferente al proyecto",
     MotivoAtencion.PROYECTO_SIN_SRC: "Necesita atención: el proyecto no tiene SRC",
-    MotivoAtencion.SRC_DEFINIDO_EN_QGIS: "Necesita atención: SRC definido solo en QGIS",
+    MotivoAtencion.SRC_DEFINIDO_EN_QGIS: "Necesita atención: el archivo no declara SRC",
     MotivoAtencion.FILTRO: "Necesita atención: la capa tiene un filtro",
     MotivoAtencion.FILTRO_GEOMETRIA: "Necesita atención: muestra un solo tipo de geometría",
-    MotivoAtencion.CAMPOS_CALCULADOS: "Se puede incorporar: tiene campos calculados",
+    MotivoAtencion.CAMPOS_CALCULADOS: "Se puede organizar: tiene campos calculados",
 }
 
 # Explicacion y orientacion (tooltip y vista previa).
@@ -313,14 +313,15 @@ TEXTO_MOTIVO = {
         "No está disponible: revisa que el archivo exista y que la unidad esté conectada."
     ),
     MotivoAtencion.SRC_ASIGNADO_DISTINTO: (
-        "Revisa el SRC asignado. El SRC de la capa no coincide con el que declara el archivo. "
-        "Corrige esta situación y vuelve a revisar."
+        "El SRC asignado en QGIS y el SRC declarado por el archivo no coinciden. "
+        "Comprueba cuál corresponde a los datos, corrige la diferencia y vuelve a revisar. "
+        "Esta capa permanece bloqueada."
     ),
     MotivoAtencion.SIN_SRC: (
         "La capa no tiene SRC. Define correctamente su sistema de coordenadas y vuelve a revisar."
     ),
     MotivoAtencion.TEMPORAL_SIN_SRC: (
-        "Esta capa temporal no tiene SRC. Define su sistema de coordenadas antes de incorporarla."
+        "Esta capa temporal no tiene SRC. Verifica y define sus coordenadas antes de incluirla en el plan."
     ),
     MotivoAtencion.CAMPO_FID_TIPO: (
         "El campo «fid» no es un número entero y Proyecto.gpkg lo usa como identificador de cada "
@@ -344,19 +345,21 @@ TEXTO_MOTIVO = {
         "como una capa separada y vuelve a revisar."
     ),
     MotivoAtencion.CAMBIOS_SIN_GUARDAR: (
-        "Tiene cambios sin guardar. Guarda o descarta los cambios antes de incorporarla."
+        "Tiene cambios sin guardar. Guarda o descarta los cambios antes de incluirla en el plan."
     ),
-    MotivoAtencion.EN_EDICION: "Está en modo edición. Termina la edición antes de incorporarla.",
+    MotivoAtencion.EN_EDICION: "Está en modo edición. Termina la edición antes de incluirla en el plan.",
     MotivoAtencion.SRC_DIFERENTE: (
-        "Su SRC es diferente al del proyecto. Se conservará su SRC original; GeoGuardian no lo cambiará. "
+        "El SRC de la fuente es diferente al del proyecto. Si se organiza después, "
+        "se conservaría el SRC de la fuente; GeoGuardian no lo cambia al preparar el plan. "
         "Decide si así lo necesitas antes de seleccionarla."
     ),
     MotivoAtencion.PROYECTO_SIN_SRC: (
         "El proyecto no tiene SRC, así que no se puede comparar con el de la capa."
     ),
     MotivoAtencion.SRC_DEFINIDO_EN_QGIS: (
-        "El archivo original no declara un sistema de coordenadas. Define correctamente su SRC y vuelve "
-        "a revisar antes de incorporarlo."
+        "El archivo original no declara un SRC válido, aunque QGIS tenga uno asignado a la capa. "
+        "Verifica cuál corresponde a los datos y asegúrate de que quede definido en el archivo. "
+        "Después pulsa «Volver a revisar». La capa permanece bloqueada hasta entonces."
     ),
     MotivoAtencion.FILTRO: (
         "La capa tiene un filtro y muestra solo una parte de los datos del archivo. Requiere atención "
@@ -367,7 +370,8 @@ TEXTO_MOTIVO = {
         "antes de incorporarla."
     ),
     MotivoAtencion.CAMPOS_CALCULADOS: (
-        "Los campos calculados se guardarán como valores y dejarán de recalcularse automáticamente."
+        "Si en una etapa posterior se organiza esta capa, los campos calculados se guardarían como "
+        "valores y dejarían de recalcularse automáticamente."
     ),
 }
 
@@ -383,8 +387,8 @@ TEXTO_ORIGEN_PLAN = {
 }
 TEXTO_TEMPORAL_ARCHIVO = "Capa temporal (resultado de Procesos)"
 
-AVISO_PLAN = "Esto es un plan: todavía no se ha copiado ni cambiado nada."
-TEXTO_ORIGINALES = "Los archivos originales no serán modificados."
+AVISO_PLAN = "Esto es solo un plan: todavía no se ha copiado ni modificado ningún archivo."
+TEXTO_ORIGINALES = "La organización propuesta conservaría los archivos originales."
 
 
 # --- Reglas -----------------------------------------------------------------------------
@@ -639,11 +643,11 @@ def ayuda_estado(unidad: Optional[UnidadIncorporacion]) -> str:
     lineas = [TEXTO_MOTIVO[m] for m in unidad.motivos]
     if not lineas:
         lineas.append(
-            "Es una capa temporal: si cierras QGIS sin incorporarla, se pierde."
-            if unidad.tipo_temporal else "Se puede incorporar a Proyecto.gpkg."
+            "Es una capa temporal: si cierras QGIS sin guardarla, podrías perderla."
+            if unidad.tipo_temporal else "El plan puede proponer organizarla en Proyecto.gpkg."
         )
     if len(unidad.ids_capas) > 1:
-        lineas.append("Se incorpora junto con: {}.".format(", ".join(unidad.nombres_capas)))
+        lineas.append("Se propone organizar junto con: {}.".format(", ".join(unidad.nombres_capas)))
     return "\n".join(lineas)
 
 
@@ -663,11 +667,11 @@ def texto_conteo(plan: Optional[PlanIncorporacion]) -> str:
         return ""
     seleccionadas = plan.unidades_seleccionadas()
     if not seleccionadas:
-        return "Ningún elemento seleccionado para incorporar."
+        return "Ningún elemento seleccionado para el plan de organización."
     capas = sum(len(u.ids_capas) for u in seleccionadas)
     advertencias = sum(len(u.advertencias) for u in seleccionadas)
     texto = "{} ({})".format(
-        _cuenta(len(seleccionadas), "1 elemento por incorporar", "{} elementos por incorporar"),
+        _cuenta(len(seleccionadas), "1 elemento en el plan", "{} elementos en el plan"),
         _cuenta(capas, "1 capa relacionada", "{} capas relacionadas"),
     )
     if advertencias:
@@ -680,15 +684,15 @@ def texto_resumen_plan(plan: PlanIncorporacion) -> str:
     unidades = plan.unidades_seleccionadas()
     frases = [_cuenta(
         len(unidades),
-        "Se incorporará un elemento en Proyecto.gpkg.",
-        "Se incorporarán {} elementos en Proyecto.gpkg.",
+        "El plan propone organizar 1 elemento en Proyecto.gpkg.",
+        "El plan propone organizar {} elementos en Proyecto.gpkg.",
     )]
     temporales = sum(1 for u in unidades if u.tipo_temporal)
     if temporales:
         frases.append(_cuenta(
             temporales,
-            "Una capa temporal quedará guardada permanentemente.",
-            "{} capas temporales quedarán guardadas permanentemente.",
+            "Una capa temporal podría conservarse si en el futuro se ejecuta la organización.",
+            "{} capas temporales podrían conservarse si en el futuro se ejecuta la organización.",
         ))
     for motivo, uno, varios in (
         (MotivoAtencion.SRC_DIFERENTE, "Un elemento tiene un SRC diferente al proyecto.",
@@ -697,8 +701,8 @@ def texto_resumen_plan(plan: PlanIncorporacion) -> str:
          "{} elementos tienen un filtro y requieren atención."),
         (MotivoAtencion.FILTRO_GEOMETRIA, "Un elemento muestra un solo tipo de geometría y requiere atención.",
          "{} elementos muestran un solo tipo de geometría y requieren atención."),
-        (MotivoAtencion.CAMPOS_CALCULADOS, "Un elemento tiene campos calculados que se guardarán como valores.",
-         "{} elementos tienen campos calculados que se guardarán como valores."),
+        (MotivoAtencion.CAMPOS_CALCULADOS, "Un elemento tiene campos calculados que se guardarían como valores al organizarlo.",
+         "{} elementos tienen campos calculados que se guardarían como valores al organizarlos."),
         (MotivoAtencion.PROYECTO_SIN_SRC, "El proyecto no tiene SRC para comparar.",
          "El proyecto no tiene SRC para comparar."),
     ):
@@ -709,8 +713,8 @@ def texto_resumen_plan(plan: PlanIncorporacion) -> str:
     if renombradas:
         frases.append(_cuenta(
             renombradas,
-            "Un elemento usará otro nombre porque el suyo ya está ocupado.",
-            "{} elementos usarán otro nombre porque el suyo ya está ocupado.",
+            "El plan propone otro nombre para un elemento porque el suyo ya está ocupado.",
+            "El plan propone otros nombres para {} elementos porque los suyos ya están ocupados.",
         ))
     frases.append(TEXTO_ORIGINALES)
     return " ".join(frases)
