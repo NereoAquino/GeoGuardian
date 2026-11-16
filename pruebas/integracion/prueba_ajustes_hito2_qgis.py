@@ -181,7 +181,13 @@ class PruebaDialogoAjustes(BaseIntegracion):
         self.assertNotIn("no disponible", src_b.toolTip())
         estado_b = dialogo.tabla.item(fila_b, INDICE_INCORPORAR)
         self.assertIn("otra capa", estado_b.text())
-        self.assertFalse(estado_b.flags() & Qt.ItemIsEnabled)
+        for capa, fila in ((rios_a, fila_a), (rios_b, fila_b)):
+            casilla = dialogo.tabla.item(fila, 0)
+            self.assertEqual(casilla.checkState(), Qt.Unchecked)
+            self.assertFalse(casilla.flags() & Qt.ItemIsEnabled)
+            self.assertFalse(casilla.flags() & Qt.ItemIsUserCheckable)
+            clave = dialogo.plan.unidad_de_capa(capa.id()).clave_unidad
+            self.assertNotIn(clave, dialogo.plan.seleccionadas)
 
     def prueba_ux02_dos_capas_fuente_sin_src_con_asignacion_parcial(self):
         """Sin SRC en archivo: no afirmar que la capa sin SRC tiene asignación QGIS."""
@@ -208,7 +214,13 @@ class PruebaDialogoAjustes(BaseIntegracion):
         self.assertIn("La capa no tiene SRC", src_b.text())
         estado_b = dialogo.tabla.item(fila_b, INDICE_INCORPORAR)
         self.assertIn("esta capa no tiene SRC", estado_b.text())
-        self.assertFalse(estado_b.flags() & Qt.ItemIsEnabled)
+        for capa, fila in ((parc_a, fila_a), (parc_b, fila_b)):
+            casilla = dialogo.tabla.item(fila, 0)
+            self.assertEqual(casilla.checkState(), Qt.Unchecked)
+            self.assertFalse(casilla.flags() & Qt.ItemIsEnabled)
+            self.assertFalse(casilla.flags() & Qt.ItemIsUserCheckable)
+            clave = dialogo.plan.unidad_de_capa(capa.id()).clave_unidad
+            self.assertNotIn(clave, dialogo.plan.seleccionadas)
 
     # --- D-70 -----------------------------------------------------------------------------
 
