@@ -949,6 +949,23 @@ Se conserva el bloqueo por discrepancia entre archivo y capa, el tratamiento de
 temporales sin SRC y la selección con advertencia, sin preselección automática,
 cuando el SRC de la fuente difiere del proyecto.
 
+### D-60 · Capas en edición (conciliación de textos vigentes)
+
+La D-60 de 2026-10-20 mantiene íntegro su texto histórico. En el PR #1
+la interfaz sustituyó la referencia a una incorporación inmediata por
+**«incluirla en el plan»**, con estos dos mensajes **literales**:
+
+- **En edición:**
+  > Está en modo edición. Termina la edición antes de incluirla en el plan.
+- **Cambios sin guardar:**
+  > Tiene cambios sin guardar. Guarda o descarta los cambios antes de incluirla en el plan.
+
+La regla D-60 **no cambia**: si cualquiera de las capas de la unidad está
+en edición o tiene cambios pendientes, toda la unidad permanece bloqueada.
+Estos dos textos se documentan como **redacciones implementadas y auditadas
+del PR #1**. No formaron parte de las cinco decisiones cuyas frases
+se aprobaron de manera literal y separada en la revisión humana de F-3.
+
 ### D-61 · Campos calculados
 
 > Si en una etapa posterior se organiza esta capa, los campos calculados se guardarían como valores y dejarían de recalcularse automáticamente.
@@ -981,19 +998,86 @@ resumen, botón para volver a la lista y ausencia de acción de incorporación r
 
 **Texto breve:**
 
-> Necesita atención: el archivo no declara SRC.
+> Necesita atención: el archivo no declara SRC
 
 **Ayuda aprobada:**
 
 > El archivo original no declara un SRC válido, aunque QGIS tenga uno asignado a la capa. Verifica cuál corresponde a los datos y asegúrate de que quede definido en el archivo. Después pulsa «Volver a revisar». La capa permanece bloqueada hasta entonces.
 
-**Ejemplo aprobado para capas que comparten fuente:**
+**Ayuda completa mostrada para capas que comparten fuente:**
 
-> Esta capa tiene un SRC asignado en QGIS, pero el archivo original no declara un SRC válido. Esta fuente tiene problemas de SRC pendientes. Sus capas no pueden organizarse todavía.
+> Esta capa tiene un SRC asignado en QGIS, pero el archivo original no declara un SRC válido. Esta fuente tiene problemas de SRC pendientes. Sus capas no pueden organizarse todavía. Comprueba el SRC del archivo y pulsa «Volver a revisar».
+
+Las tres primeras oraciones son la redacción aprobada expresamente en F-3;
+la última es la instrucción operativa que ya incluye la interfaz del PR #1.
+La transcripción completa permite comparar literalmente documento y código.
 
 La visibilidad de la capa no equivale a permiso de selección: la fuente
 permanece bloqueada y fuera del plan hasta corregirse en el archivo y
 volver a revisar. GeoGuardian no asigna ni reproyecta el SRC automáticamente.
+
+### UX-02 · Mensajes SRC por capa en fuentes compartidas (F-2, R-1 y R-2)
+
+Además de la redacción principal de D-69, el PR #1 presenta estos
+**estados literales** para evitar atribuir a una capa los problemas de otra:
+
+- `Necesita atención: esta capa no tiene SRC asignado`
+- `Necesita atención: SRC en QGIS, archivo sin SRC`
+- `Necesita atención: los SRC del archivo y QGIS no coinciden`
+- `Necesita atención: otra capa de esta fuente tiene un problema de SRC`
+
+Los **textos completos de ayuda** correspondientes a esos estados, según
+`interfaz/dialogo_incorporacion.py::_decorar_fila`, son:
+
+**Capa sin SRC asignado:**
+
+> Esta capa no tiene un SRC asignado. Revisa también el SRC del archivo original. Esta fuente tiene problemas de SRC pendientes. Sus capas no pueden organizarse todavía. Corrige la situación y pulsa «Volver a revisar».
+
+**Capa con SRC en QGIS y archivo sin SRC:**
+
+> Esta capa tiene un SRC asignado en QGIS, pero el archivo original no declara un SRC válido. Esta fuente tiene problemas de SRC pendientes. Sus capas no pueden organizarse todavía. Comprueba el SRC del archivo y pulsa «Volver a revisar».
+
+**Capa con SRC de QGIS distinto del declarado por el archivo:**
+
+> El SRC asignado en QGIS y el SRC declarado por el archivo no coinciden. Comprueba cuál corresponde a los datos, corrige la diferencia y vuelve a revisar. Esta capa permanece bloqueada. Esta fuente tiene problemas de SRC pendientes. Sus capas no pueden organizarse todavía.
+
+**Capa sin problema SRC propio, bloqueada por otra capa de la fuente:**
+
+> Esta capa no presenta el problema de SRC detectado en otra capa de la misma fuente. Esta fuente tiene problemas de SRC pendientes. Sus capas no pueden organizarse todavía. Corrige la otra capa y pulsa «Volver a revisar».
+
+La **columna SRC** distingue las plantillas `{} (QGIS) · archivo sin SRC`
+y `{} (QGIS) · distinto del archivo`: `{}` se sustituye por el
+identificador del SRC de la capa. Sus ayudas emergentes siguen estas
+plantillas, en las que los saltos de línea también son parte del mensaje
+y `{}` representa un valor variable:
+
+**Archivo sin SRC:**
+
+```text
+¿Por qué aparece esta advertencia?
+SRC asignado en QGIS: {}.
+SRC declarado por el archivo: no definido.
+El archivo no guarda ese SRC; comprueba cuál corresponde a sus datos, defínelo correctamente en la fuente y pulsa «Volver a revisar». La capa no puede organizarse mientras falte el SRC del archivo.
+```
+
+**SRC asignado distinto del archivo:**
+
+```text
+¿Por qué aparece esta advertencia?
+SRC asignado en QGIS: {}.
+SRC declarado por el archivo: {}.
+No coinciden: comprueba cuál corresponde a los datos, corrige la diferencia y pulsa «Volver a revisar». La capa sigue bloqueada.
+```
+
+**Ayuda introductoria de la advertencia SRC:**
+
+> ¿Por qué aparece esta advertencia? El sistema de referencia de coordenadas (SRC) indica cómo interpretar la ubicación de los datos. Sitúa el cursor sobre la columna «SRC» o «Organizar» de la capa afectada para conocer el problema y qué revisar.
+
+Estas ayudas individualizadas son **textos implementados y reauditorizados**
+en F-2, R-1 y R-2; la aprobación humana explícita de F-3 se refiere
+a las redacciones señaladas en las secciones D-59, D-61, D-65, D-69
+y D-70 de esta decisión. Las variantes específicas se consignan aquí
+para su trazabilidad, sin atribuirles una votación literal individual.
 
 ### D-70 · Plan desactualizado
 
@@ -1008,6 +1092,43 @@ volver a revisar. GeoGuardian no asigna ni reproyecta el SRC automáticamente.
 El plan anterior se invalida, la vista previa se vacía y «Ver plan de
 organización» queda deshabilitado; cambiar casillas no lo reactiva. Solo una
 nueva revisión puede habilitar la consulta del nuevo plan.
+
+### Resto de textos del Hito 2 y control de versiones
+
+La aprobación literal específica de D-72 se concentra en D-59,
+D-61, D-65, D-69 y D-70. Los demás rótulos y mensajes que el PR #1
+adaptó al enfoque de **«organizar» / «consultar un plan»** quedan
+**registrados como redacciones operativas vigentes de esta rama**,
+conservando las decisiones históricas. Incluyen:
+
+- **D-65, resumen y conteos:** «Ningún elemento seleccionado para el
+  plan de organización.», «1 elemento en el plan», «1 capa relacionada»,
+  «El plan propone organizar 1 elemento en Proyecto.gpkg.» y
+  «Una capa temporal podría conservarse si en el futuro se ejecuta
+  la organización.»; también sus variantes plurales y los contadores
+  de advertencias.
+- **Ayudas del estado y origen:** «El plan puede proponer organizarla
+  en Proyecto.gpkg.», «Se propone organizar junto con: {}.» y
+  «La organización propuesta conservaría los archivos originales.»
+- **Filtros, geometrías y modo edición:** las ayudas ahora indican
+  «antes de incluirla en el plan» cuando corresponde; siguen vigentes
+  los mismos bloqueos y advertencias de D-60, D-61 y D-65.
+- **Plan no disponible:** «No se pudo mostrar el plan de organización.
+  Revisa el registro de mensajes de QGIS.»
+- **Incorporación futura:** las referencias a conversiones, guardados
+  y conservación de temporales se formulan de forma condicional,
+  sin presentar la vista previa como una acción ejecutada.
+
+**Fuente normativa del texto visible del PR #1:** para cualquier literal
+restante, las cadenas efectivamente implementadas en
+`geoguardian/dominio/plan_incorporacion.py` y
+`geoguardian/interfaz/dialogo_incorporacion.py` de la rama
+`feat/ux01-ux02-comunicacion`, auditada en el commit de código
+`25b22ab715d3ed4a5f839406f72b5508738816d1`.
+El listado anterior es **representativo, no exhaustivo**; no equivale a
+una aprobación humana literal individual de cada uno de los mensajes.
+La D-72 complementa la terminología histórica, **sin sustituir** las
+reglas de elegibilidad, selección o revalidación.
 
 ### Alcance de la aprobación y evidencia
 
