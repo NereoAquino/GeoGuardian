@@ -213,7 +213,25 @@ class PruebaDialogoAjustes(BaseIntegracion):
         self.assertNotIn("(QGIS) · archivo sin SRC", src_b.text())
         self.assertIn("La capa no tiene SRC", src_b.text())
         estado_b = dialogo.tabla.item(fila_b, INDICE_INCORPORAR)
-        self.assertIn("esta capa no tiene SRC", estado_b.text())
+        estado_a = dialogo.tabla.item(fila_a, INDICE_INCORPORAR)
+        self.assertIn("SRC en QGIS, archivo sin SRC", estado_a.text())
+        self.assertIn(
+            "Esta capa tiene un SRC asignado en QGIS, pero el archivo original "
+            "no declara un SRC válido.",
+            estado_a.toolTip(),
+        )
+        self.assertNotIn("esta capa no tiene SRC", estado_a.text())
+        self.assertIn("esta capa no tiene SRC asignado", estado_b.text())
+        self.assertIn(
+            "Esta capa no tiene un SRC asignado. Revisa también el SRC del archivo original.",
+            estado_b.toolTip(),
+        )
+        for estado in (estado_a, estado_b):
+            self.assertIn(
+                "Esta fuente tiene problemas de SRC pendientes. "
+                "Sus capas no pueden organizarse todavía.",
+                estado.toolTip(),
+            )
         for capa, fila in ((parc_a, fila_a), (parc_b, fila_b)):
             casilla = dialogo.tabla.item(fila, 0)
             self.assertEqual(casilla.checkState(), Qt.Unchecked)
