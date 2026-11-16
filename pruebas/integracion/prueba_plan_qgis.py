@@ -563,6 +563,11 @@ class PruebaDialogoConPlan(BaseIntegracion):
         dialogo = complemento.dialogo_revisar
         self.assertEqual(dialogo.tabla.horizontalHeaderItem(INDICE_INCORPORAR).text(), COLUMNA_INCORPORAR)
         self.assertEqual(dialogo.boton_preparar.text(), BOTON_PREPARAR)
+        self.assertEqual(dialogo.boton_preparar.text(), "Ver plan de organización")
+        self.assertIn("GeoPackage (Proyecto.gpkg)", dialogo.intro_organizacion.text())
+        self.assertIn("solo verás un plan", dialogo.intro_organizacion.text())
+        self.assertIn("Sistema de referencia de coordenadas (SRC)",
+                      dialogo.tabla.horizontalHeaderItem(3).toolTip())
         filas = self.filas(dialogo)
         self.assertEqual(filas["rios"][1], "Se puede organizar")
         self.assertEqual(filas["campo"][1], "Capa temporal: se recomienda organizar")
