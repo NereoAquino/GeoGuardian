@@ -914,3 +914,16 @@ deshabilita "Preparar incorporación". Cambiar casillas no lo reactiva. "Volver 
 habilitado; al pulsarlo se reconstruyen inventario y plan, se limpia el estado obsoleto y el botón
 se habilita si el nuevo plan tiene elementos seleccionados. El plan anterior no puede volver a
 mostrarse sin una revisión nueva.
+
+
+## D-71 · Ajuste de comunicación del Hito 2 (UX-01/UX-02) — **Aprobada conceptualmente; implementación pendiente** (NEREO, 2026-11-15)
+
+**Origen:** piloto [NORTE-PILOTO-001](validacion_hito2_windows_norte.md), cerrado con observaciones. El criterio CA-06 (comprensión) **no fue aprobado**. El responsable humano aprobó conceptualmente UX-01 y UX-02 y autorizó formalizar su documentación, **sin autorizar todavía modificar código**.
+
+**Alcance UX-01 — explicación de la organización.** Se propone sustituir en la interfaz «Preparar incorporación» por «Ver plan de organización», «Plan de incorporación» por «Plan de organización de capas», la columna «Incorporar» por «Organizar» y el estado «Se puede incorporar» por «Se puede organizar». Añadir una explicación breve del problema, el beneficio, el destino `Proyecto.gpkg` y la conservación de los archivos originales. Revisar también los textos en futuro que puedan hacer creer que la copia ya se realizó: por ejemplo, «Se incorporará...» o «Una capa temporal quedará guardada permanentemente». El plan debe describir **acciones propuestas**, no acciones realizadas. No prometer que todos los tipos de datos (incluidos rásteres) se almacenarán en un solo GeoPackage ni que el proyecto quedará automáticamente portable.
+
+**Alcance UX-02 — distinción de SRC.** Explicar en lenguaje comprensible el SRC asignado a la capa en QGIS y el SRC declarado válidamente por la fuente. Aclarar cuándo la ausencia o inconsistencia bloquea la selección y cuándo un SRC de fuente distinto al del proyecto solamente requiere advertencia. Se propone ayuda contextual «¿Por qué aparece esta advertencia?». Evitar presentar «igual al proyecto» aisladamente si el archivo original no declara SRC.
+
+**Relación con decisiones vigentes.** Esta aprobación conceptual propone un ajuste futuro de las etiquetas fijadas en **D-65**, conservando intacto su registro histórico y el comportamiento actualmente implementado. **D-59** y **D-69** mantienen los bloqueos y reglas de SRC; **D-70** conserva la invalidación de planes obsoletos hasta «Volver a revisar»; **D-68** mantiene la preparación del plan exclusivamente en memoria, sin escritura ni copia. Renombrar botones no cambiará estas reglas.
+
+**Especificación de referencia:** [GEOGUARDIAN-UX-001 v0.1](GEOGUARDIAN-UX-001.md). Antes de implementar: revisar el alcance final de los textos, autorizar expresamente el cambio de código, ejecutar pruebas de regresión funcional y obtener nueva evidencia de comprensión con usuarios. La aprobación conceptual de esta decisión **no modifica CA-06 ni autoriza publicar o fusionar nuevas versiones**.
