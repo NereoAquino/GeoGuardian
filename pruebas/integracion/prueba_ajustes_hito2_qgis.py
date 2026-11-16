@@ -134,6 +134,29 @@ class PruebaDialogoAjustes(BaseIntegracion):
         elementos = {dialogo.tabla_plan.item(f, 0).text() for f in range(dialogo.tabla_plan.rowCount())}
         self.assertEqual(elementos, {"rios"})
 
+    def prueba_ux02_src_qgis_distinto_del_archivo(self):
+        """La interfaz explica ambos SRC y mantiene el bloqueo de D-59."""
+        rios = self.rios()
+        rios.setCrs(QgsCoordinateReferenceSystem("EPSG:4326"))
+        self.assertEqual(rios.crs().authid(), "EPSG:4326")
+        self.assertEqual(rios.dataProvider().crs().authid(), "EPSG:32615")
+        dialogo = self.abrir()
+        celda, texto = self.fila(dialogo, "rios")
+        self.assertIn("no coinciden", texto)
+        fila = next(
+            i for i in range(dialogo.tabla.rowCount())
+            if dialogo.tabla.item(i, 0).text() == "rios"
+        )
+        src = dialogo.tabla.item(fila, 3)
+        self.assertIn("EPSG:4326 (QGIS)", src.text())
+        self.assertIn("distinto del archivo", src.text())
+        self.assertIn("SRC asignado en QGIS: EPSG:4326", src.toolTip())
+        self.assertIn("SRC declarado por el archivo:", src.toolTip())
+        self.assertIn("EPSG:32615", src.toolTip())
+        self.assertFalse(celda.flags() & Qt.ItemIsEnabled)
+        self.assertFalse(celda.flags() & Qt.ItemIsUserCheckable)
+        self.assertNotIn(dialogo.plan.unidad_de_capa(rios.id()).clave_unidad, dialogo.plan.seleccionadas)
+
     # --- D-70 -----------------------------------------------------------------------------
 
     def prueba_d70_plan_obsoleto_hasta_volver_a_revisar(self):
