@@ -243,6 +243,43 @@ class DialogoRevisarCapasConPlan(DialogoRevisarCapas):
             texto, ayuda = TEXTO_SIN_PLAN, self.motivo_sin_plan or TEXTO_SIN_PLAN
         else:
             texto, ayuda = texto_estado(unidad), ayuda_estado(unidad)
+        # La elegibilidad es por unidad (fuente compartida); la explicación visible
+        # de SRC debe corresponder a la capa individual y no atribuirle el
+        # problema de otra capa de la misma fuente.
+        huella_capa = (
+            next((h for h in unidad.huella.capas if h.id_capa == capa.id_capa), None)
+            if unidad is not None else None
+        )
+        src_solo_qgis = bool(
+            unidad is not None and capa.es_espacial and capa.src.valido
+            and huella_capa is not None and not huella_capa.src_fuente
+            and MotivoAtencion.SRC_DEFINIDO_EN_QGIS in unidad.motivos
+        )
+        src_distinto_archivo = bool(
+            unidad is not None and capa.es_espacial and capa.src_fuente_distinto is not None
+            and MotivoAtencion.SRC_ASIGNADO_DISTINTO in unidad.motivos
+        )
+        origen_compartido_con_problema_src = bool(
+            unidad is not None and (
+                MotivoAtencion.SRC_DEFINIDO_EN_QGIS in unidad.motivos
+                or MotivoAtencion.SRC_ASIGNADO_DISTINTO in unidad.motivos
+            )
+        )
+        if origen_compartido_con_problema_src and not (src_solo_qgis or src_distinto_archivo):
+            if capa.es_espacial and not capa.src.valido:
+                texto = "Necesita atención: esta capa no tiene SRC"
+                ayuda = (
+                    "Esta capa no tiene un sistema de referencia de coordenadas (SRC) asignado "
+                    "en QGIS. La fuente está compartida con otras capas y el conjunto permanece "
+                    "bloqueado hasta corregir los problemas de SRC y volver a revisar."
+                )
+            else:
+                texto = "Necesita atención: otra capa de esta fuente tiene un problema de SRC"
+                ayuda = (
+                    "Esta capa no presenta la diferencia de SRC indicada para otra capa "
+                    "de la misma fuente. Como se organizan juntas, el conjunto permanece "
+                    "bloqueado hasta corregir la otra capa y volver a revisar."
+                )
         celda = QTableWidgetItem(texto)
         celda.setToolTip(ayuda)
         self.tabla.setItem(fila, INDICE_INCORPORAR, celda)
@@ -253,7 +290,7 @@ class DialogoRevisarCapasConPlan(DialogoRevisarCapas):
         celda_src = self.tabla.item(fila, 3)
         if celda_src is not None:
             src_qgis = capa.src.identificador or capa.src.descripcion or "no identificado"
-            if MotivoAtencion.SRC_DEFINIDO_EN_QGIS in unidad.motivos:
+            if src_solo_qgis:
                 celda_src.setText("{} (QGIS) · archivo sin SRC".format(src_qgis))
                 celda_src.setToolTip(
                     (
@@ -265,7 +302,7 @@ class DialogoRevisarCapasConPlan(DialogoRevisarCapas):
                         "La capa no puede organizarse mientras falte el SRC del archivo."
                     ).format(src_qgis)
                 )
-            elif MotivoAtencion.SRC_ASIGNADO_DISTINTO in unidad.motivos:
+            elif src_distinto_archivo:
                 src_archivo = (capa.src_fuente_distinto.texto()
                                if capa.src_fuente_distinto is not None else "no disponible")
                 celda_src.setText("{} (QGIS) · distinto del archivo".format(src_qgis))
