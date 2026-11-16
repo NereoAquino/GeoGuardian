@@ -257,16 +257,16 @@ class ResultadoPlan:
     motivo_sin_plan: str = ""
 
 
-SIN_PROYECTO = "Abre un proyecto administrado para preparar la incorporación."
+SIN_PROYECTO = "Abre un proyecto administrado para ver el plan de organización."
 GEOPAQUETE_NO_UTILIZABLE = (
-    "Proyecto.gpkg no está listo, así que no se puede preparar la incorporación. "
+    "Proyecto.gpkg no está listo, así que no se puede mostrar el plan de organización. "
     "Revisa el panel de GeoGuardian."
 )
 GEOPAQUETE_AJENO = (
     "Proyecto.gpkg no corresponde a este proyecto administrado, así que no se puede preparar la "
-    "incorporación."
+    "organización."
 )
-GEOPAQUETE_ILEGIBLE = "No se pudo leer Proyecto.gpkg, así que no se puede preparar la incorporación."
+GEOPAQUETE_ILEGIBLE = "No se pudo leer Proyecto.gpkg, así que no se puede mostrar el plan de organización."
 
 
 # --- Textos para el estudiante (D-65) -----------------------------------------------------
@@ -276,7 +276,7 @@ TEXTO_TEMPORAL_RECOMENDADA = "Capa temporal: se recomienda organizar"
 TEXTO_NO_VECTORIAL = "No se organiza en esta versión"
 TEXTO_SIN_PLAN = "—"
 
-# Texto breve para la columna "Incorporar".
+# Texto breve para la columna "Organizar".
 TEXTO_BREVE = {
     MotivoAtencion.YA_ADMINISTRADA: "Ya está en el proyecto",
     MotivoAtencion.RECURSO_EN_LINEA: "Se mantiene conectado",
@@ -363,11 +363,11 @@ TEXTO_MOTIVO = {
     ),
     MotivoAtencion.FILTRO: (
         "La capa tiene un filtro y muestra solo una parte de los datos del archivo. Requiere atención "
-        "antes de incorporarla."
+        "antes de incluirla en el plan."
     ),
     MotivoAtencion.FILTRO_GEOMETRIA: (
         "La capa muestra solo un tipo de geometría de un archivo que tiene varios. Requiere atención "
-        "antes de incorporarla."
+        "antes de incluirla en el plan."
     ),
     MotivoAtencion.CAMPOS_CALCULADOS: (
         "Si en una etapa posterior se organiza esta capa, los campos calculados se guardarían como "
@@ -629,7 +629,7 @@ def seleccion_tras_revisar(
 # --- Textos compuestos ------------------------------------------------------------------
 
 def texto_estado(unidad: Optional[UnidadIncorporacion]) -> str:
-    """Columna "Incorporar" de la lista."""
+    """Columna "Organizar" de la lista."""
     if unidad is None:
         return TEXTO_SIN_PLAN
     if unidad.motivo_principal is None:
@@ -662,7 +662,7 @@ def _cuenta(n: int, uno: str, varios: str) -> str:
 
 
 def texto_conteo(plan: Optional[PlanIncorporacion]) -> str:
-    """'3 elementos por incorporar (4 capas relacionadas) · 2 advertencias pendientes'."""
+    """'3 elementos en el plan (4 capas relacionadas) · 2 advertencias pendientes'."""
     if plan is None:
         return ""
     seleccionadas = plan.unidades_seleccionadas()
