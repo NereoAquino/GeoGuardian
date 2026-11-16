@@ -107,20 +107,20 @@ class PruebaElegibilidadPorOrigen(BasePlan):
     def prueba_archivo_en_la_carpeta_del_proyecto(self):
         ruta = self.archivo(os.path.join(self.carpeta, "datos"), "rios.shp")
         self.comprobar(self.entrada("c", ruta_local=ruta), El.INCORPORABLE, Se.PRESELECCIONADA,
-                       texto="Se puede incorporar")
+                       texto="Se puede organizar")
 
     def prueba_archivo_externo(self):
         self.comprobar(self.externo("c"), El.INCORPORABLE, Se.PRESELECCIONADA)
 
     def prueba_capa_en_memoria(self):
         unidad = self.comprobar(self.memoria("c"), El.INCORPORABLE, Se.PRESELECCIONADA,
-                                texto="Capa temporal: se recomienda incorporar")
+                                texto="Capa temporal: se recomienda organizar")
         self.assertEqual(unidad.tipo_temporal, TEMPORAL_MEMORIA)
 
     def prueba_archivo_temporal_de_procesos(self):
         ruta = self.archivo(self.temporal, "OUTPUT.gpkg")
         unidad = self.comprobar(self.entrada("c", ruta_local=ruta, nombre="Buffer 100 m"), El.INCORPORABLE,
-                                Se.PRESELECCIONADA, texto="Capa temporal: se recomienda incorporar")
+                                Se.PRESELECCIONADA, texto="Capa temporal: se recomienda organizar")
         self.assertEqual(unidad.tipo_temporal, TEMPORAL_ARCHIVO)
         self.assertEqual(unidad.nombre_destino, "Buffer 100 m")  # no "OUTPUT"
 
@@ -173,7 +173,7 @@ class PruebaSrc(BasePlan):
                                            src_igual_fuente=False)])
         self.assertEqual(unidad.elegibilidad, El.NO_INCORPORABLE)
         self.assertEqual(unidad.motivos, (M.SRC_ASIGNADO_DISTINTO,))
-        self.assertIn("Revisa el SRC asignado", ayuda_estado(unidad))
+        self.assertIn("El SRC asignado en QGIS", ayuda_estado(unidad))
 
     def prueba_archivo_sin_src(self):
         unidad = self.unidad([self.externo("c", src=SIN, src_fuente=SIN, src_igual_proyecto=False)])
@@ -208,7 +208,7 @@ class PruebaEdicion(BasePlan):
         unidad = self.unidad([self.memoria("c")], datos={"c": self.datos("c", en_edicion=True)})
         self.assertEqual((unidad.elegibilidad, unidad.motivos), (El.BLOQUEADA, (M.EN_EDICION,)))
         self.assertEqual(texto_estado(unidad), "Está en modo edición")
-        self.assertIn("Termina la edición antes de incorporarla", ayuda_estado(unidad))
+        self.assertIn("Termina la edición antes de incluirla en el plan", ayuda_estado(unidad))
 
     def prueba_cambios_sin_guardar(self):
         unidad = self.unidad([self.memoria("c")], datos={"c": self.datos("c", en_edicion=True, con_cambios=True)})
@@ -268,7 +268,7 @@ class PruebaUnidades(BasePlan):
         unidad = plan.unidades[0]
         self.assertEqual(unidad.ids_capas, ("a", "b", "c"))
         self.assertEqual(unidad.nombre_destino, "municipios")
-        self.assertIn("Se incorpora junto con", ayuda_estado(unidad))
+        self.assertIn("Se propone organizar junto con", ayuda_estado(unidad))
 
     def prueba_filtros_distintos_unidades_distintas(self):
         capas = [self.externo("a", nombre="Todos"), self.externo("b", nombre="Norte"), self.externo("c", nombre="Sur")]
@@ -421,11 +421,11 @@ class PruebaTextos(BasePlan):
         capas = [self.externo("a"), self.externo("b"), self.memoria("m"),
                  self.externo("s", "otro.shp", src=GEO, src_fuente=GEO, src_igual_proyecto=False)]
         plan = self.plan(capas)
-        self.assertEqual(texto_conteo(plan), "2 elementos por incorporar (3 capas relacionadas)")
+        self.assertEqual(texto_conteo(plan), "2 elementos en el plan (3 capas relacionadas)")
         plan = con_seleccion(plan, [u.clave_unidad for u in plan.unidades])
         self.assertEqual(texto_conteo(plan),
-                         "3 elementos por incorporar (4 capas relacionadas) · 1 advertencia pendiente")
-        self.assertEqual(texto_conteo(con_seleccion(plan, ())), "Ningún elemento seleccionado para incorporar.")
+                         "3 elementos en el plan (4 capas relacionadas) · 1 advertencia pendiente")
+        self.assertEqual(texto_conteo(con_seleccion(plan, ())), "Ningún elemento seleccionado para el plan de organización.")
 
     def prueba_resumen_de_la_vista_previa(self):
         destino = replace(self.destino, nombres_ocupados=frozenset({"municipios"}))
@@ -435,9 +435,9 @@ class PruebaTextos(BasePlan):
         plan = con_seleccion(plan, [u.clave_unidad for u in plan.unidades])
         self.assertEqual(
             texto_resumen_plan(plan),
-            "Se incorporarán 3 elementos en Proyecto.gpkg. Una capa temporal quedará guardada permanentemente. "
-            "Un elemento tiene un SRC diferente al proyecto. Un elemento usará otro nombre porque el suyo ya "
-            "está ocupado. Los archivos originales no serán modificados.",
+            "El plan propone organizar 3 elementos en Proyecto.gpkg. Una capa temporal podría conservarse si en el futuro se ejecuta la organización. "
+            "Un elemento tiene un SRC diferente al proyecto. El plan propone otro nombre para un elemento porque el suyo ya "
+            "está ocupado. La organización propuesta conservaría los archivos originales.",
         )
 
 
