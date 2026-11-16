@@ -46,7 +46,7 @@ class PruebaComunicacionHito2(unittest.TestCase):
         self.assertIn("diferente al del proyecto", detalle)
         self.assertIn("conservaría el SRC de la fuente", detalle)
 
-    def prueba_interfaz_ux01_ux02_sin_modificar_dialogo_del_hito1(self):
+    def prueba_contrato_estatico_de_textos_y_herencia_del_hito1(self):
         ruta = RAIZ / "geoguardian" / "interfaz" / "dialogo_incorporacion.py"
         fuente = ruta.read_text(encoding="utf-8")
         ast.parse(fuente, filename=str(ruta))
