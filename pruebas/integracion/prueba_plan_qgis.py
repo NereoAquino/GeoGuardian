@@ -336,7 +336,8 @@ class PruebaCamposEnElPlan(BasePlanQgis):
         unidad = self.unidad(self.construir(), capa)
         self.assertEqual((unidad.elegibilidad, unidad.seleccion), (El.CON_ADVERTENCIA, Se.SELECCIONABLE))
         self.assertEqual(TEXTO_MOTIVO[M.CAMPOS_CALCULADOS],
-                         "Los campos calculados se guardarán como valores y dejarán de recalcularse automáticamente.")
+                         "Si en una etapa posterior se organiza esta capa, los campos calculados se guardarían como "
+                         "valores y dejarían de recalcularse automáticamente.")
         self.assertIn(M.CAMPOS_CALCULADOS, unidad.motivos)
 
 
