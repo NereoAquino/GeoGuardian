@@ -261,7 +261,7 @@ class PruebaDialogoAjustes(BaseIntegracion):
         estado_b = dialogo.tabla.item(fila_b, INDICE_INCORPORAR)
         self.assertIn("esta capa no tiene SRC asignado", estado_a.text())
         self.assertIn("otra capa", estado_b.text())
-        self.assertNotIn("la capa no tiene SRC", estado_b.toolTip().lower())
+        self.assertNotIn("la capa no tiene src", estado_b.toolTip().lower())
         self.assertIn("EPSG:32615", dialogo.tabla.item(fila_b, 3).text())
         self.assertIn("igual al proyecto", dialogo.tabla.item(fila_b, 3).text())
         for capa, fila in ((rios_a, fila_a), (rios_b, fila_b)):
@@ -295,7 +295,7 @@ class PruebaDialogoAjustes(BaseIntegracion):
         estado_b = dialogo.tabla.item(fila_b, INDICE_INCORPORAR)
         self.assertIn("no coinciden", estado_a.text())
         self.assertIn("SRC asignado en QGIS y el SRC declarado", estado_a.toolTip())
-        self.assertNotIn("la capa no tiene SRC", estado_a.toolTip().lower())
+        self.assertNotIn("la capa no tiene src", estado_a.toolTip().lower())
         self.assertIn("esta capa no tiene SRC asignado", estado_b.text())
         self.assertIn("distinto del archivo", dialogo.tabla.item(fila_a, 3).text())
         self.assertIn("La capa no tiene SRC", dialogo.tabla.item(fila_b, 3).text())
